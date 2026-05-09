@@ -94,6 +94,9 @@
         .field:last-child { margin-bottom: 0; }
         .field label  { font-size: 12px; font-weight: 600; color: var(--text-2); text-transform: uppercase; letter-spacing: 0.05em; }
         .field .hint  { font-size: 11px; color: var(--text-3); margin-top: 3px; }
+        .no-email-link { font-size: 11px; color: var(--text-3); margin-top: 5px; display: block; cursor: pointer; text-decoration: none; }
+        .no-email-link:hover { color: var(--text-2); }
+        .no-email-link.active { color: var(--accent); }
         .required-star { color: var(--error-text); margin-left: 2px; }
         .err-text { font-size: 11px; color: var(--error-text); display: none; margin-top: 2px; }
         .err-text.show { display: block; }
@@ -348,8 +351,10 @@
         <div class="section-label">Contact Details</div>
 
         <div class="field">
-            <label>Email Address <span class="required-star">*</span></label>
+            <label>Email Address</label>
             <input type="email" id="email" placeholder="yourname@email.com" autocomplete="email">
+            <input type="hidden" id="noEmailCheck" value="false">
+            <span class="no-email-link" id="noEmailLink" onclick="toggleNoEmail()">Student has no email address</span>
             <span class="err-text" id="emailErr"></span>
         </div>
 
@@ -494,9 +499,32 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzdEe2oinUB08LGWzFv_NBtS_kKFpLZAoUxAYL3FtSaoEv0skQEEzqtktkYZT0vA60/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbza6LYzhrNm483iLfOlt0xvMXbvvl_snNAyusSfYTl5RRb4Sb1EJ-VAvQIFwgN3s3oC/exec';
 
 // ── MM/YYYY formatter ─────────────────────────────────────────
+function toggleNoEmail() {
+    var hidden = document.getElementById('noEmailCheck');
+    var link   = document.getElementById('noEmailLink');
+    var input  = document.getElementById('email');
+    var active = hidden.value === 'true';
+    if (!active) {
+        hidden.value = 'true';
+        input.value  = '';
+        input.disabled = true;
+        input.style.opacity = '0.4';
+        link.textContent = 'Undo — student has an email address';
+        link.classList.add('active');
+        clearErr('emailErr');
+    } else {
+        hidden.value = 'false';
+        input.disabled = false;
+        input.style.opacity = '1';
+        link.textContent = 'Student has no email address';
+        link.classList.remove('active');
+        input.focus();
+    }
+}
+
 function formatMonthYear(input) {
     let val = input.value.replace(/\D/g, ''); // digits only
     if (val.length > 6) val = val.slice(0, 6);
@@ -596,7 +624,8 @@ function validateAll() {
 
     if (!surname)    { showErr('surnameErr',   'Please enter your surname');     valid = false; }
     if (!firstName)  { showErr('firstNameErr', 'Please enter your first name');  valid = false; }
-    if (!email || !/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,6}$/.test(email))
+    const noEmail = document.getElementById('noEmailCheck').value === 'true';
+    if (!noEmail && (!email || !/^[^\s@]+@[^\s@]+\.[a-zA-Z]{2,6}$/.test(email)))
                      { showErr('emailErr',     'Please enter a valid email address'); valid = false; }
     if (!phone || phone.replace(/\D/g,'').length < 10)
                      { showErr('phoneErr',     'Please enter a valid phone number'); valid = false; }
@@ -631,7 +660,7 @@ async function handleSubmit() {
         surname      : document.getElementById('surname').value.trim(),
         firstName    : document.getElementById('firstName').value.trim(),
         otherName    : document.getElementById('otherName').value.trim(),
-        email        : document.getElementById('email').value.trim(),
+        email        : document.getElementById('noEmailCheck').value === 'true' ? '' : document.getElementById('email').value.trim(),
         phone        : document.getElementById('phone').value.trim(),
         gender       : radioState.gender,
         joinedHOTR   : document.getElementById('joinedHOTR').value,
