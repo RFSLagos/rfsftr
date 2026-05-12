@@ -1648,6 +1648,23 @@ input:focus, select:focus { outline: none; }
                     <button class="att-day-pill" onclick="setAttDay(3, this)">3 Days Ago</button>
                 </div>
 
+                <!-- My Group Panel — regular admins only -->
+                <div class="card my-group-panel" id="myGroupPanel" style="margin-bottom:14px;">
+                    <div class="card-head">
+                        <div class="card-head-text">
+                            <div class="card-title" id="myGroupTitle">My Group</div>
+                            <div class="card-sub" id="myGroupSub">Loading…</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="loadMyGroup()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="myGroupList">
+                        <div class="att-empty">Tap Refresh to load your group.</div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-body">
                         <div class="att-summary">
@@ -1994,23 +2011,6 @@ input:focus, select:focus { outline: none; }
                         <p style="font-size:12px; color:var(--ink-3); line-height:1.6; margin-top:4px;">
                             001, 011, 021… → Group 1 &nbsp;·&nbsp; 002, 012, 022… → Group 2 &nbsp;·&nbsp; 010, 020, 030… → Group 10
                         </p>
-                    </div>
-                </div>
-
-                <!-- My Group Panel — regular admins, shown via Grouping button in attendance -->
-                <div class="card my-group-panel" id="myGroupPanel">
-                    <div class="card-head">
-                        <div class="card-head-text">
-                            <div class="card-title" id="myGroupTitle">My Group</div>
-                            <div class="card-sub" id="myGroupSub">Loading…</div>
-                        </div>
-                        <button class="btn btn-outline btn-sm" onclick="loadMyGroup()">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
-                            Refresh
-                        </button>
-                    </div>
-                    <div class="card-body" id="myGroupList">
-                        <div class="att-empty">Loading group…</div>
                     </div>
                 </div>
 
