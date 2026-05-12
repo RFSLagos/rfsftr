@@ -1481,6 +1481,19 @@ input:focus, select:focus { outline: none; }
                     </div>
                 </div>
 
+                <div class="card" id="dashSessionCard" style="margin-bottom:14px;">
+                    <div class="card-head">
+                        <div class="card-head-text">
+                            <div class="card-title">Active Session</div>
+                            <div class="card-sub" id="dashSessionSub">Loading…</div>
+                        </div>
+                        <span class="pill pill-closed" id="dashSessionPill">Loading</span>
+                    </div>
+                    <div class="card-body" id="dashSessionBody" style="font-size:13px; color:var(--ink-3);">
+                        Looking up the active stream from configuration…
+                    </div>
+                </div>
+
                 <div class="stats">
                     <div class="stat physical">
                         <div class="stat-icon">
@@ -1511,19 +1524,6 @@ input:focus, select:focus { outline: none; }
                             <div class="stat-value" id="dashAbsent">—</div>
                             <div class="stat-foot" id="dashAbsentSub">Not yet checked in</div>
                         </div>
-                    </div>
-                </div>
-
-                <div class="card" id="dashSessionCard">
-                    <div class="card-head">
-                        <div class="card-head-text">
-                            <div class="card-title">Active Session</div>
-                            <div class="card-sub" id="dashSessionSub">Loading…</div>
-                        </div>
-                        <span class="pill pill-closed" id="dashSessionPill">Loading</span>
-                    </div>
-                    <div class="card-body" id="dashSessionBody" style="font-size:13px; color:var(--ink-3);">
-                        Looking up the active stream from configuration…
                     </div>
                 </div>
             </section>
