@@ -81,10 +81,9 @@ input:focus, select:focus { outline: none; }
    ────────────────────────────────────────────────────────── */
 .login-overlay {
     position: fixed; inset: 0; z-index: 200;
-    display: none; grid-template-columns: 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr;
     background: var(--bg);
 }
-.login-overlay.show { display: grid; }
 .login-brand {
     background: transparent;
     color: #fff;
@@ -952,6 +951,35 @@ input:focus, select:focus { outline: none; }
 .assess-tab-panel { display: none; }
 .assess-tab-panel.show { display: block; }
 
+/* ── Grouping button in attendance ── */
+.att-head-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.att-head-row .btn { flex-shrink: 0; }
+
+/* ── My Group panel (mobile-first) ── */
+.my-group-panel { display: none; }
+.my-group-panel.show { display: block; }
+.student-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+}
+.student-row:last-child { border-bottom: none; }
+.student-info { flex: 1; min-width: 0; }
+.student-name { font-size: 14px; font-weight: 600; color: var(--ink-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.student-phone { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.student-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.s-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; letter-spacing: .04em; }
+.s-badge.yes  { background: var(--green-wash); color: var(--green-deep); }
+.s-badge.no   { background: var(--surface); color: var(--ink-3); }
+.student-edit-btn { flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.student-edit-btn:active { opacity: .7; }
+
+/* ── Summary card ── */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); }
+.summary-table td { padding: 10px 10px; border-bottom: 1px solid var(--line-soft); color: var(--ink-1); }
+.summary-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--green-deep); background: var(--green-wash); }
+.summary-num { font-weight: 700; color: var(--green-deep); }
+
 .group-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
     margin-bottom: 18px;
@@ -990,6 +1018,35 @@ input:focus, select:focus { outline: none; }
 .assess-tab.active { color: var(--green-deep); border-bottom-color: var(--green-deep); }
 .assess-tab-panel { display: none; }
 .assess-tab-panel.show { display: block; }
+
+/* ── Grouping button in attendance ── */
+.att-head-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.att-head-row .btn { flex-shrink: 0; }
+
+/* ── My Group panel (mobile-first) ── */
+.my-group-panel { display: none; }
+.my-group-panel.show { display: block; }
+.student-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+}
+.student-row:last-child { border-bottom: none; }
+.student-info { flex: 1; min-width: 0; }
+.student-name { font-size: 14px; font-weight: 600; color: var(--ink-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.student-phone { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.student-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.s-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; letter-spacing: .04em; }
+.s-badge.yes  { background: var(--green-wash); color: var(--green-deep); }
+.s-badge.no   { background: var(--surface); color: var(--ink-3); }
+.student-edit-btn { flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.student-edit-btn:active { opacity: .7; }
+
+/* ── Summary card ── */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); }
+.summary-table td { padding: 10px 10px; border-bottom: 1px solid var(--line-soft); color: var(--ink-1); }
+.summary-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--green-deep); background: var(--green-wash); }
+.summary-num { font-weight: 700; color: var(--green-deep); }
 
 .group-grid { grid-template-columns: repeat(5, 1fr); } }
 .group-card {
@@ -1061,6 +1118,35 @@ input:focus, select:focus { outline: none; }
 .assess-tab-panel { display: none; }
 .assess-tab-panel.show { display: block; }
 
+/* ── Grouping button in attendance ── */
+.att-head-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.att-head-row .btn { flex-shrink: 0; }
+
+/* ── My Group panel (mobile-first) ── */
+.my-group-panel { display: none; }
+.my-group-panel.show { display: block; }
+.student-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+}
+.student-row:last-child { border-bottom: none; }
+.student-info { flex: 1; min-width: 0; }
+.student-name { font-size: 14px; font-weight: 600; color: var(--ink-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.student-phone { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.student-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.s-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; letter-spacing: .04em; }
+.s-badge.yes  { background: var(--green-wash); color: var(--green-deep); }
+.s-badge.no   { background: var(--surface); color: var(--ink-3); }
+.student-edit-btn { flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.student-edit-btn:active { opacity: .7; }
+
+/* ── Summary card ── */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); }
+.summary-table td { padding: 10px 10px; border-bottom: 1px solid var(--line-soft); color: var(--ink-1); }
+.summary-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--green-deep); background: var(--green-wash); }
+.summary-num { font-weight: 700; color: var(--green-deep); }
+
 .group-grid {
     display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;
     margin-bottom: 18px;
@@ -1099,6 +1185,35 @@ input:focus, select:focus { outline: none; }
 .assess-tab.active { color: var(--green-deep); border-bottom-color: var(--green-deep); }
 .assess-tab-panel { display: none; }
 .assess-tab-panel.show { display: block; }
+
+/* ── Grouping button in attendance ── */
+.att-head-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+.att-head-row .btn { flex-shrink: 0; }
+
+/* ── My Group panel (mobile-first) ── */
+.my-group-panel { display: none; }
+.my-group-panel.show { display: block; }
+.student-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 12px 0; border-bottom: 1px solid var(--line-soft);
+}
+.student-row:last-child { border-bottom: none; }
+.student-info { flex: 1; min-width: 0; }
+.student-name { font-size: 14px; font-weight: 600; color: var(--ink-1); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.student-phone { font-size: 12px; color: var(--ink-3); margin-top: 2px; }
+.student-badges { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.s-badge { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 99px; letter-spacing: .04em; }
+.s-badge.yes  { background: var(--green-wash); color: var(--green-deep); }
+.s-badge.no   { background: var(--surface); color: var(--ink-3); }
+.student-edit-btn { flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink-2); cursor: pointer; }
+.student-edit-btn:active { opacity: .7; }
+
+/* ── Summary card ── */
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); }
+.summary-table td { padding: 10px 10px; border-bottom: 1px solid var(--line-soft); color: var(--ink-1); }
+.summary-table tr:last-child td { border-bottom: none; font-weight: 700; color: var(--green-deep); background: var(--green-wash); }
+.summary-num { font-weight: 700; color: var(--green-deep); }
 
 .group-grid { grid-template-columns: repeat(5, 1fr); } }
 .group-card {
@@ -1514,6 +1629,10 @@ input:focus, select:focus { outline: none; }
                         <p class="page-sub" id="attDateSub">Load a session to view attendance</p>
                     </div>
                     <div class="page-actions">
+                        <button class="btn btn-outline btn-sm" id="attGroupingBtn" style="display:none;" onclick="toggleMyGroupPanel()">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                            My Group
+                        </button>
                         <button class="btn btn-outline btn-sm" onclick="loadAttendance()">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.65 4.36A9 9 0 0 0 20.5 15"/></svg>
                             Refresh
@@ -1878,11 +1997,45 @@ input:focus, select:focus { outline: none; }
                     </div>
                 </div>
 
+                <!-- My Group Panel — regular admins, shown via Grouping button in attendance -->
+                <div class="card my-group-panel" id="myGroupPanel">
+                    <div class="card-head">
+                        <div class="card-head-text">
+                            <div class="card-title" id="myGroupTitle">My Group</div>
+                            <div class="card-sub" id="myGroupSub">Loading…</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="loadMyGroup()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="myGroupList">
+                        <div class="att-empty">Loading group…</div>
+                    </div>
+                </div>
+
                 <div class="card" id="groupResultCard" style="display:none;">
                     <div class="card-body">
                         <div class="field-label" style="margin-bottom:12px;">Last Refresh Results</div>
                         <div id="groupResultList"></div>
                         <p style="margin-top:12px; font-size:12px; color:var(--ink-3);" id="groupResultTotal"></p>
+                    </div>
+                </div>
+
+                <!-- Summary Card — Super Admin only -->
+                <div class="card" id="groupSummaryCard" style="margin-top:14px;">
+                    <div class="card-head">
+                        <div class="card-head-text">
+                            <div class="card-title">Grouping Summary</div>
+                            <div class="card-sub">Live from Grouping Sheet — Added, Bus, Bus Group per group</div>
+                        </div>
+                        <button class="btn btn-outline btn-sm" onclick="loadGroupingSummary()">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
+                            Refresh
+                        </button>
+                    </div>
+                    <div class="card-body" id="groupSummaryBody">
+                        <div class="att-empty">Click Refresh to load summary.</div>
                     </div>
                 </div>
                 </div>
@@ -2035,8 +2188,6 @@ function getStoredPass() {
 window.addEventListener('DOMContentLoaded', function() {
     if (loadAdmin()) {
         showApp();
-    } else {
-        document.getElementById('loginOverlay').classList.add('show');
     }
     updateTopicList();
 
@@ -2088,7 +2239,7 @@ function showLoginErr(msg) {
 }
 
 function showApp() {
-    document.getElementById('loginOverlay').classList.remove('show');
+    document.getElementById('loginOverlay').style.display = 'none';
     document.getElementById('app').classList.add('show');
 
     // Avatar initials
@@ -2101,6 +2252,8 @@ function showApp() {
     // Grouping nav + mobile FAB (Super Admin only)
     const isSuper = admin.role === 'Super Admin';
     document.getElementById('navGrouping').style.display    = isSuper ? 'flex'  : 'none';
+    // Show My Group button in attendance for regular admins (all admins actually)
+    document.getElementById('attGroupingBtn').style.display = 'inline-flex';
 
 
     // Initial loads
@@ -2115,7 +2268,7 @@ function handleLogout() {
     sessionData = null;
     testModeOn  = false;
     document.getElementById('app').classList.remove('show');
-    document.getElementById('loginOverlay').classList.add('show');
+    document.getElementById('loginOverlay').style.display = 'grid';
     document.getElementById('loginName').value = '';
     document.getElementById('loginPassword').value = '';
     document.getElementById('loginErr').classList.remove('show');
@@ -2142,7 +2295,10 @@ function switchPage(name, btn) {
     if (name === 'attendance')  loadAttendance();
     if (name === 'scores')      updateTopicList();
     if (name === 'permissions') { updateExcuseForm(); loadExcuses(); }
-    if (name === 'grouping')     loadGroupConfig();
+    if (name === 'grouping') {
+        loadGroupConfig();
+        if (admin && admin.role === 'Super Admin') loadGroupingSummary();
+    }
     if (name === 'scores')       { switchAssessTab('assessment'); loadAssessInfo(); }
 }
 
@@ -3383,6 +3539,177 @@ async function resetStudentCode(reg) {
 }
 
 // ============================================================
+//  MY GROUP MODULE — all admins, mobile-first
+// ============================================================
+let myGroupCache = { students: [], tabName: '' };
+let myGroupVisible = false;
+
+function toggleMyGroupPanel() {
+    const panel = document.getElementById('myGroupPanel');
+    const btn   = document.getElementById('attGroupingBtn');
+    if (!panel) return;
+    myGroupVisible = !myGroupVisible;
+    if (myGroupVisible) {
+        panel.classList.add('show');
+        btn.style.background = 'var(--green-deep)';
+        btn.style.color      = '#fff';
+        btn.style.borderColor = 'var(--green-deep)';
+        loadMyGroup();
+    } else {
+        panel.classList.remove('show');
+        btn.style.background  = '';
+        btn.style.color       = '';
+        btn.style.borderColor = '';
+    }
+}
+
+async function loadMyGroup() {
+    const list = document.getElementById('myGroupList');
+    const sub  = document.getElementById('myGroupSub');
+    const title = document.getElementById('myGroupTitle');
+    if (!list) return;
+    list.innerHTML = '<div class="att-empty">Loading…</div>';
+    try {
+        const url = SCRIPT_URL + '?action=get_my_group'
+            + '&token='     + encodeURIComponent(SCRIPT_TOKEN)
+            + '&adminName=' + encodeURIComponent(admin.name)
+            + '&password='  + encodeURIComponent(getStoredPass())
+            + '&cb=' + Date.now();
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (data.status !== 'success') {
+            list.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">' + safeHtml(data.message || 'Failed to load group.') + '</div>';
+            return;
+        }
+        myGroupCache = { students: data.students || [], tabName: data.tabName || '' };
+        title.textContent = data.tabName || 'My Group';
+        sub.textContent   = data.total + ' student' + (data.total === 1 ? '' : 's');
+        renderMyGroup(myGroupCache.students);
+    } catch(e) {
+        list.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">Connection error. Try again.</div>';
+    }
+}
+
+function renderMyGroup(students) {
+    const list = document.getElementById('myGroupList');
+    if (!students || !students.length) {
+        list.innerHTML = '<div class="att-empty">No students in your group yet. Run Update Groups first.</div>';
+        return;
+    }
+    list.innerHTML = students.map(function(s, idx) {
+        var addedBadge   = s.added    === 'Yes' ? '<span class="s-badge yes">Added</span>'   : '<span class="s-badge no">Not Added</span>';
+        var busBadge     = s.followBus === 'Yes' ? '<span class="s-badge yes">Bus</span>'     : '';
+        var busgBadge    = s.addedBus === 'Yes'  ? '<span class="s-badge yes">Bus Group</span>' : '';
+        return '<div class="student-row">'
+            + '<div class="student-info">'
+            + '<div class="student-name">' + safeHtml(s.firstName + ' ' + s.lastName) + '</div>'
+            + '<div class="student-phone">' + safeHtml(s.phone || s.reg) + '</div>'
+            + '<div class="student-badges">' + addedBadge + busBadge + busgBadge + '</div>'
+            + '</div>'
+            + '<button class="student-edit-btn" onclick="openStudentEdit(' + idx + ')">Edit</button>'
+            + '</div>';
+    }).join('');
+}
+
+function openStudentEdit(idx) {
+    const s = myGroupCache.students[idx];
+    if (!s) return;
+    document.getElementById('editStudentIdx').value      = idx;
+    document.getElementById('editStudentName').textContent = s.firstName + ' ' + s.lastName;
+    document.getElementById('editStudentReg').textContent  = s.reg;
+    document.getElementById('editAdded').value    = s.added    || '';
+    document.getElementById('editComment').value  = s.comment  || '';
+    document.getElementById('editFollowBus').value = s.followBus || '';
+    document.getElementById('editBusLoc').value   = s.busLoc   || '';
+    document.getElementById('editAddedBus').value = s.addedBus || '';
+    document.getElementById('studentEditOverlay').classList.add('show');
+}
+
+function closeStudentEdit() {
+    document.getElementById('studentEditOverlay').classList.remove('show');
+}
+
+async function saveStudentEdit() {
+    const idx  = parseInt(document.getElementById('editStudentIdx').value, 10);
+    const s    = myGroupCache.students[idx];
+    if (!s) return;
+    const btn  = document.getElementById('saveStudentEditBtn');
+    btn.disabled = true; btn.textContent = 'Saving…';
+    const added     = document.getElementById('editAdded').value;
+    const comment   = document.getElementById('editComment').value.trim();
+    const followBus = document.getElementById('editFollowBus').value;
+    const busLoc    = document.getElementById('editBusLoc').value.trim();
+    const addedBus  = document.getElementById('editAddedBus').value;
+    try {
+        const url = SCRIPT_URL + '?action=update_student_grouping'
+            + '&token='       + encodeURIComponent(SCRIPT_TOKEN)
+            + '&adminName='   + encodeURIComponent(admin.name)
+            + '&password='    + encodeURIComponent(getStoredPass())
+            + '&tabName='     + encodeURIComponent(myGroupCache.tabName)
+            + '&rowIndex='    + encodeURIComponent(s.rowIndex)
+            + '&studentName=' + encodeURIComponent(s.firstName + ' ' + s.lastName)
+            + '&added='       + encodeURIComponent(added)
+            + '&comment='     + encodeURIComponent(comment)
+            + '&followBus='   + encodeURIComponent(followBus)
+            + '&busLoc='      + encodeURIComponent(busLoc)
+            + '&addedBus='    + encodeURIComponent(addedBus)
+            + '&cb=' + Date.now();
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (data.status === 'success') {
+            // Update cache
+            s.added = added; s.comment = comment; s.followBus = followBus;
+            s.busLoc = busLoc; s.addedBus = addedBus;
+            showToast('Updated.', 'ok');
+            closeStudentEdit();
+            renderMyGroup(myGroupCache.students);
+        } else {
+            showToast(data.message || 'Update failed.', 'err');
+        }
+    } catch(e) {
+        showToast('Connection error. Try again.', 'err');
+    }
+    btn.disabled = false; btn.textContent = 'Save';
+}
+
+// ── Grouping Summary (Super Admin) ────────────────────────────
+async function loadGroupingSummary() {
+    const body = document.getElementById('groupSummaryBody');
+    if (!body) return;
+    body.innerHTML = '<div class="att-empty">Loading…</div>';
+    try {
+        const url = SCRIPT_URL + '?action=get_grouping_summary'
+            + '&token='     + encodeURIComponent(SCRIPT_TOKEN)
+            + '&adminName=' + encodeURIComponent(admin.name)
+            + '&password='  + encodeURIComponent(getStoredPass())
+            + '&cb=' + Date.now();
+        const res  = await fetch(url);
+        const data = await res.json();
+        if (data.status !== 'success') {
+            body.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">' + safeHtml(data.message || 'Failed.') + '</div>';
+            return;
+        }
+        var rows = (data.summary || []).map(function(g) {
+            return '<tr>'
+                + '<td>Group ' + g.group + '</td>'
+                + '<td>' + safeHtml(g.admin) + '</td>'
+                + '<td><span class="summary-num">' + g.total + '</span></td>'
+                + '<td><span class="summary-num">' + g.added + '</span></td>'
+                + '<td><span class="summary-num">' + g.followBus + '</span></td>'
+                + '<td><span class="summary-num">' + g.addedBus + '</span></td>'
+                + '</tr>';
+        }).join('');
+        var t = data.totals || {};
+        rows += '<tr><td colspan="2">Total</td><td>' + (t.total||0) + '</td><td>' + (t.added||0) + '</td><td>' + (t.followBus||0) + '</td><td>' + (t.addedBus||0) + '</td></tr>';
+        body.innerHTML = '<table class="summary-table">'
+            + '<thead><tr><th>Group</th><th>Admin</th><th>Students</th><th>Added</th><th>Bus</th><th>Bus Grp</th></tr></thead>'
+            + '<tbody>' + rows + '</tbody></table>';
+    } catch(e) {
+        body.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">Connection error.</div>';
+    }
+}
+
+// ============================================================
 //  GROUPING MODULE — Super Admin only
 // ============================================================
 let groupConfigCache = [];
@@ -3605,6 +3932,55 @@ function renderGroupResults(groups, totalAdded) {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
                         Yes, Reset
                     </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Grouping Edit Overlay -->
+        <div class="qaqc-overlay" id="studentEditOverlay">
+            <div class="qaqc-modal" style="max-width:400px;">
+                <div class="qaqc-title" id="editStudentName">Student Name</div>
+                <div class="qaqc-desc" id="editStudentReg" style="font-family:monospace; font-size:13px; margin-bottom:16px;"></div>
+                <input type="hidden" id="editStudentIdx">
+
+                <div style="display:flex; flex-direction:column; gap:12px; text-align:left;">
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ink-3); display:block; margin-bottom:4px;">Added to WhatsApp Group</label>
+                        <select id="editAdded" class="input">
+                            <option value="">— Not set —</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ink-3); display:block; margin-bottom:4px;">Follow Church Bus</label>
+                        <select id="editFollowBus" class="input">
+                            <option value="">— Not set —</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ink-3); display:block; margin-bottom:4px;">Bus Location</label>
+                        <input type="text" id="editBusLoc" class="input" placeholder="e.g. Lekki, Ajah">
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ink-3); display:block; margin-bottom:4px;">Added to Bus Group</label>
+                        <select id="editAddedBus" class="input">
+                            <option value="">— Not set —</option>
+                            <option value="Yes">Yes</option>
+                            <option value="No">No</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="font-size:12px; font-weight:600; color:var(--ink-3); display:block; margin-bottom:4px;">Comment</label>
+                        <input type="text" id="editComment" class="input" placeholder="Any note about this student">
+                    </div>
+                </div>
+
+                <div class="qaqc-actions" style="margin-top:20px;">
+                    <button class="btn btn-outline btn-sm" onclick="closeStudentEdit()">Cancel</button>
+                    <button class="btn btn-primary btn-sm" id="saveStudentEditBtn" onclick="saveStudentEdit()">Save</button>
                 </div>
             </div>
         </div>
