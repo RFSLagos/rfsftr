@@ -2252,8 +2252,8 @@ function showApp() {
     // Grouping nav + mobile FAB (Super Admin only)
     const isSuper = admin.role === 'Super Admin';
     document.getElementById('navGrouping').style.display    = isSuper ? 'flex'  : 'none';
-    // Show My Group button in attendance for regular admins (all admins actually)
-    document.getElementById('attGroupingBtn').style.display = 'inline-flex';
+    // Show My Group button only for regular admins — Super Admin uses the Grouping page
+    document.getElementById('attGroupingBtn').style.display = isSuper ? 'none' : 'inline-flex';
 
 
     // Initial loads
