@@ -1076,8 +1076,8 @@ input:focus, select:focus { outline: none; }
     .mob-desktop-only { display: flex !important; }
     #pageScores .page-content-wrap,
     #pagePermissions .page-content-wrap,
-    #pageReport .page-content-wrap,
-    #pageGrouping .page-content-wrap { display: none; }
+    #pageReport .page-content-wrap { display: none; }
+    /* pageGrouping is accessible on mobile for regular admins */
 }
 
 /* ════════════════════════════════════════
@@ -1965,8 +1965,8 @@ input:focus, select:focus { outline: none; }
             <section class="page" id="pageGrouping">
                 <div class="page-head">
                     <div class="page-head-text">
-                        <h1 class="page-title">Student Grouping</h1>
-                        <p class="page-sub">Assign active students to WhatsApp groups by last digit of their serial number.</p>
+                        <h1 class="page-title" id="groupingPageTitle">Student Grouping</h1>
+                        <p class="page-sub" id="groupingPageSub">Assign active students to WhatsApp groups by last digit of their serial number.</p>
                     </div>
                     <div class="page-actions" id="groupingPageActions">
                         <button class="btn btn-outline btn-sm" onclick="loadGroupConfig()">
@@ -2298,7 +2298,11 @@ function switchPage(name, btn) {
         var elResult  = document.getElementById('groupResultCard');
         var elSummary = document.getElementById('groupSummaryCard');
         var elMyGroup = document.getElementById('myGroupPanel');
+        var elTitle = document.getElementById('groupingPageTitle');
+        var elSub   = document.getElementById('groupingPageSub');
         if (isGroupingSuper) {
+            if (elTitle)   elTitle.textContent = 'Student Grouping';
+            if (elSub)     elSub.textContent   = 'Assign active students to WhatsApp groups by last digit of their serial number.';
             if (elActions) elActions.style.display = '';
             if (elGrid)    elGrid.style.display    = '';
             if (elSummary) elSummary.style.display = '';
@@ -2306,6 +2310,8 @@ function switchPage(name, btn) {
             loadGroupConfig();
             loadGroupingSummary();
         } else {
+            if (elTitle)   elTitle.textContent = 'My Group';
+            if (elSub)     elSub.textContent   = 'View and update your students — mark who has joined WhatsApp, follows the bus, and more.';
             if (elActions) elActions.style.display = 'none';
             if (elGrid)    elGrid.style.display    = 'none';
             if (elResult)  elResult.style.display  = 'none';
