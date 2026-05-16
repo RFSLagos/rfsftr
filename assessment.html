@@ -532,6 +532,7 @@
         <div style="font-size:40px; margin-bottom:16px;" id="confirmOverlayIcon">📋</div>
         <div style="font-size:17px; font-weight:700; color:#1A2010; margin-bottom:8px;" id="confirmOverlayTitle">Have you submitted?</div>
         <div style="font-size:13px; color:#4A5540; line-height:1.6; margin-bottom:24px;" id="confirmOverlayText">
+            Please Confirm.<br><br>
             If you have <strong>already submitted</strong>, tap <em>Yes, I'm Done</em> to end your session.<br><br>
             If you <strong>haven't submitted yet</strong>, tap <em>Go Back</em> to return to the form.
         </div>
@@ -1192,6 +1193,7 @@ function showConfirmOverlay() {
     document.getElementById('confirmOverlayTitle').textContent = 'Have you submitted your ' + typeWord + '?';
     document.getElementById('confirmOverlayIcon').textContent  = isExamType ? '📝' : '📋';
     document.getElementById('confirmOverlayText').innerHTML    =
+        'Please Confirm.<br><br>'
         + 'If you have <strong>already submitted</strong>, tap <em>Yes, I Am Done</em> to end your session.<br><br>'
         + 'If you have <strong>not submitted yet</strong>, tap <em>Go Back</em> to return to the form.';
     document.getElementById('confirmOverlay').style.display = 'flex';
