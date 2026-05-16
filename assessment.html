@@ -1192,7 +1192,6 @@ function showConfirmOverlay() {
     document.getElementById('confirmOverlayTitle').textContent = 'Have you submitted your ' + typeWord + '?';
     document.getElementById('confirmOverlayIcon').textContent  = isExamType ? '📝' : '📋';
     document.getElementById('confirmOverlayText').innerHTML    =
-        'It looks like you navigated away from the form.<br><br>'
         + 'If you have <strong>already submitted</strong>, tap <em>Yes, I Am Done</em> to end your session.<br><br>'
         + 'If you have <strong>not submitted yet</strong>, tap <em>Go Back</em> to return to the form.';
     document.getElementById('confirmOverlay').style.display = 'flex';
