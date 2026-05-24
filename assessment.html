@@ -398,7 +398,7 @@
                 <span class="closed-title">
                     <span class="closed-pulse"></span>Assessment Not Yet Open
                 </span>
-                The assessment window is not currently open.
+                The assessment window is not currently open. Please wait — this page will update automatically when your Admin opens it.
             </div>
 
             <div class="field">
@@ -406,12 +406,6 @@
                 <input type="text" id="regInput" placeholder="RFS / XXXX / XXX" maxlength="14" autocomplete="off" inputmode="text">
                 <span class="hint">Format: RFS/2601/053</span>
                 <span class="err-text" id="regErr"></span>
-            </div>
-            <div class="field">
-                <label>Access Code</label>
-                <input type="text" id="codeInput" placeholder="Enter your unique code" maxlength="10" autocomplete="off">
-                <span class="hint">Your personal assessment code provided by admin</span>
-                <span class="err-text" id="codeErr"></span>
             </div>
             <!-- Location status — only shown for physical students -->
             <div id="locRow" style="display:flex; align-items:center; justify-content:space-between; background:var(--bg-surface); border-radius:var(--r-sm); padding:10px 14px; margin-bottom:14px;">
@@ -423,7 +417,7 @@
             <div class="online-toggle-wrap">
                 <label class="online-check-row">
                     <input type="checkbox" id="onlineToggle" onchange="handleOnlineToggle()">
-                    <span class="online-check-label">I am online</span>
+                    <span class="online-check-label">I am Online</span>
                 </label>
                 <div class="online-code-field" id="onlineCodeField">
                     <label class="field" style="margin-bottom:0;">
@@ -455,7 +449,7 @@
                     <div class="welcome-reg"  id="studentReg"></div>
                 </div>
             </div>
-            <!-- Timer — only shown for EXAM -->
+            <!-- Timer — only shown for EXAM type -->
             <div class="timer-wrap" id="timerWrap" style="display:none;">
                 <span class="timer-label">Time Allowed</span>
                 <span class="timer-value" id="timerDisplay">45:00</span>
@@ -532,7 +526,7 @@
         <div style="font-size:40px; margin-bottom:16px;" id="confirmOverlayIcon">📋</div>
         <div style="font-size:17px; font-weight:700; color:#1A2010; margin-bottom:8px;" id="confirmOverlayTitle">Have you submitted?</div>
         <div style="font-size:13px; color:#4A5540; line-height:1.6; margin-bottom:24px;" id="confirmOverlayText">
-            Please Confirm.<br><br>
+            It looks like you navigated away from the form.<br><br>
             If you have <strong>already submitted</strong>, tap <em>Yes, I'm Done</em> to end your session.<br><br>
             If you <strong>haven't submitted yet</strong>, tap <em>Go Back</em> to return to the form.
         </div>
@@ -585,19 +579,17 @@ let examInProgress  = false;  // true while iframe exam is open
 let examIsOpen      = false;  // result of background check_assessment_open poll
 let examOpenPoller  = null;   // interval ID for background polling
 
-const CAMPUS_LAT     = 6.436995;
-const CAMPUS_LNG     = 3.493372;
-const MAX_DISTANCE_M = 100;
+const CAMPUS_LAT     = 6.4369984301299645;
+const CAMPUS_LNG     = 3.493390506792726;
+const MAX_DISTANCE_M = 200;
 
 // ════════════════════════════════════════════════════════════
 //  DOM REFS
 // ════════════════════════════════════════════════════════════
 const regInput    = document.getElementById('regInput');
-const codeInput   = document.getElementById('codeInput');
 const loginBtn    = document.getElementById('loginBtn');
 const loginStatus = document.getElementById('loginStatus');
 const regErr      = document.getElementById('regErr');
-const codeErr     = document.getElementById('codeErr');
 
 // ════════════════════════════════════════════════════════════
 //  INPUT HANDLING
@@ -607,17 +599,11 @@ regInput.addEventListener('input', function() {
     clearErr(regInput, regErr);
     updateLoginBtn();
 });
-codeInput.addEventListener('input', function() {
-    this.value = this.value.toUpperCase();
-    clearErr(codeInput, codeErr);
-    updateLoginBtn();
-});
-regInput.addEventListener('keydown',  e => { if (e.key === 'Enter') codeInput.focus(); });
-codeInput.addEventListener('keydown', e => { if (e.key === 'Enter') handleLogin(); });
+
+regInput.addEventListener('keydown',  e => { if (e.key === 'Enter') handleLogin(); });
 
 function updateLoginBtn() {
     const regOk    = /^RFS\/\d{4}\/\d{3}$/.test(regInput.value.trim());
-    const codeOk   = codeInput.value.trim().length >= 4;
     const isOnline = document.getElementById('onlineToggle').checked;
     const onlineOk = !isOnline || document.getElementById('onlineCodeInput').value.trim().length >= 4;
 
@@ -629,7 +615,7 @@ function updateLoginBtn() {
     }
 
     // Exam must be open (from background check)
-    loginBtn.disabled = !(regOk && codeOk && onlineOk && locationOk && examIsOpen);
+    loginBtn.disabled = !(regOk && onlineOk && locationOk && examIsOpen);
 }
 
 function handleOnlineToggle() {
@@ -904,10 +890,8 @@ function startExamOpenPolling() {
 // ════════════════════════════════════════════════════════════
 async function handleLogin() {
     const reg  = regInput.value.trim();
-    const code = codeInput.value.trim();
 
     if (!/^RFS\/\d{4}\/\d{3}$/.test(reg)) { showErr(regInput, regErr, 'Format must be RFS/XXXX/XXX'); return; }
-    if (code.length < 4)                   { showErr(codeInput, codeErr, 'Please enter your exam code'); return; }
 
     loginBtn.disabled  = true;
     loginBtn.innerHTML = '<span style="font-size:14px">Checking exam status…</span>';
@@ -942,7 +926,6 @@ async function handleLogin() {
             + '?action=verify_assessment'
             + '&token='    + encodeURIComponent(SCRIPT_TOKEN)
             + '&reg='      + encodeURIComponent(reg)
-            + '&code='     + encodeURIComponent(code)
             + '&isOnline=' + (isOnline ? 'true' : 'false')
             + '&lat='      + (userLocation ? userLocation.latitude  : '')
             + '&lng='      + (userLocation ? userLocation.longitude : '')
@@ -958,7 +941,7 @@ async function handleLogin() {
             return;
         }
 
-        data.formUrl = xorDecode(data.encodedUrl, code);
+        data.formUrl = xorDecode(data.encodedUrl, reg.toUpperCase());
         verifiedData = data;
         studentType     = isOnline ? 'ONLINE' : (data.studentType || 'PHYSICAL');
         assessmentType  = data.assessmentType  || assessmentType  || 'EXAM';
@@ -1193,7 +1176,7 @@ function showConfirmOverlay() {
     document.getElementById('confirmOverlayTitle').textContent = 'Have you submitted your ' + typeWord + '?';
     document.getElementById('confirmOverlayIcon').textContent  = isExamType ? '📝' : '📋';
     document.getElementById('confirmOverlayText').innerHTML    =
-        'Please Confirm.<br><br>'
+        'It looks like you navigated away from the form.<br><br>'
         + 'If you have <strong>already submitted</strong>, tap <em>Yes, I Am Done</em> to end your session.<br><br>'
         + 'If you have <strong>not submitted yet</strong>, tap <em>Go Back</em> to return to the form.';
     document.getElementById('confirmOverlay').style.display = 'flex';
