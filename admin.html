@@ -1554,6 +1554,20 @@ input:focus, select:focus { outline: none; }
                     </div>
                 </div>
 
+                <!-- Current Online Code Display -->
+                <div class="card" id="sunCurrentCodeCard" style="display:none; margin-bottom:14px;">
+                    <div class="card-body" style="padding:14px 16px;">
+                        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:6px;">Current Active Code</div>
+                        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                            <span id="sunCurrentCodeDisplay" style="font-family:monospace; font-size:28px; font-weight:700; letter-spacing:.12em; color:var(--green-deep);"></span>
+                            <button class="btn btn-outline btn-sm" onclick="copySunCode()" id="btnCopySunCode" title="Copy code">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                Copy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-head">
                         <div class="card-head-text">
@@ -1594,6 +1608,23 @@ input:focus, select:focus { outline: none; }
                             <button class="btn btn-primary btn-sm" id="btnSatCI" onclick="setSatMode('CHECKIN-OPEN')" disabled>Open Sign-In</button>
                             <button class="btn btn-amber btn-sm" id="btnSatCO" onclick="setSatMode('CHECKOUT-OPEN')" disabled>Open Sign-Out</button>
                             <button class="btn btn-danger btn-sm" id="btnSatClose" onclick="setSatMode('CLOSED')" disabled>Close</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Current Saturday Codes Display -->
+                <div class="card" id="satCurrentCodesCard" style="display:none; margin-bottom:14px;">
+                    <div class="card-body" style="padding:14px 16px;">
+                        <div style="font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--ink-3); margin-bottom:10px;">Current Codes</div>
+                        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                            <div>
+                                <div style="font-size:11px; color:var(--ink-3); margin-bottom:4px;">Sign-In Code</div>
+                                <div id="satCurrentCIDisplay" style="font-family:monospace; font-size:22px; font-weight:700; letter-spacing:.1em; color:var(--green-deep);">—</div>
+                            </div>
+                            <div>
+                                <div style="font-size:11px; color:var(--ink-3); margin-bottom:4px;">Sign-Out Code</div>
+                                <div id="satCurrentCODisplay" style="font-family:monospace; font-size:22px; font-weight:700; letter-spacing:.1em; color:var(--green-deep);">—</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -2483,6 +2514,18 @@ function exportDailyReport() {
 //  SUNDAY
 // ============================================================
 function updateSundayUI(data) {
+    // Show current online code if set
+    var codeCard = document.getElementById('sunCurrentCodeCard');
+    var codeDisp = document.getElementById('sunCurrentCodeDisplay');
+    if (codeCard && codeDisp) {
+        if (data.currentOnlineCode) {
+            codeDisp.textContent = data.currentOnlineCode;
+            codeCard.style.display = '';
+        } else {
+            codeCard.style.display = 'none';
+        }
+    }
+
     const pill   = document.getElementById('sunPill');
     const status = document.getElementById('sunStatus');
     const btnO   = document.getElementById('btnSunOpen');
@@ -2542,7 +2585,7 @@ async function adminSunday(mode, code, loadingMsg, successMsg) {
         const res = await fetch(url); const data = await res.json();
         if (data.status === 'success') {
             showToast(successMsg || data.message, 'ok');
-            sessionStorage.removeItem('rfs_session_v2'); // invalidate cache
+            sessionStorage.removeItem('rfs_session_v2'); // invalidate cache so new code shows on next load
             // Update UI directly — don't re-fetch which could bring back
             // stale sunOpen=true from time window on a non-Sunday
             if (mode === 'FORCE-OPEN') {
@@ -2562,6 +2605,22 @@ async function adminSunday(mode, code, loadingMsg, successMsg) {
 //  SATURDAY
 // ============================================================
 function updateSaturdayUI(data) {
+    // Show current Saturday codes if set
+    var satCodesCard = document.getElementById('satCurrentCodesCard');
+    var satCIDisp    = document.getElementById('satCurrentCIDisplay');
+    var satCODisp    = document.getElementById('satCurrentCODisplay');
+    if (satCodesCard) {
+        var ci = data.satCheckInCode  || '';
+        var co = data.satCheckOutCode || '';
+        if (ci || co) {
+            if (satCIDisp) satCIDisp.textContent = ci || '—';
+            if (satCODisp) satCODisp.textContent = co || '—';
+            satCodesCard.style.display = '';
+        } else {
+            satCodesCard.style.display = 'none';
+        }
+    }
+
     const pill   = document.getElementById('satPill');
     const status = document.getElementById('satStatus');
     const btnCI  = document.getElementById('btnSatCI');
@@ -3555,6 +3614,16 @@ async function resetStudentCode(reg) {
     } catch(e) {
         result.innerHTML = '<span style="color:var(--red-mid);">Connection error. Try again.</span>';
     }
+}
+
+function copySunCode() {
+    var code = document.getElementById('sunCurrentCodeDisplay').textContent;
+    if (!code) return;
+    navigator.clipboard.writeText(code).then(function() {
+        var btn = document.getElementById('btnCopySunCode');
+        btn.textContent = 'Copied!';
+        setTimeout(function() { btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy'; }, 2000);
+    });
 }
 
 // ============================================================
