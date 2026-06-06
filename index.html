@@ -388,7 +388,7 @@
     <div class="card-body">
 
         <!-- Live preview strip -->
-        <div class="preview-strip">
+        <div class="preview-strip" onclick="focusFirstInput()" style="cursor:pointer;">
             <div class="preview-icon">
                 <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                     <rect x="3" y="4" width="14" height="13" rx="2"/>
@@ -1059,6 +1059,15 @@ checkinBtn.addEventListener('click', async function() {
         checkinBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8 7 12 13 4"/></svg><span>' + (currentEvent === 'SAT-OUT' ? 'Sign Out Now' : 'Sign In Now') + '</span>';
     }
 });
+
+function focusFirstInput() {
+    const ys = document.getElementById('yearStream');
+    const sr = document.getElementById('serial');
+    const target = (ys && !ys.value.trim()) ? ys : sr;
+    if (!target) return;
+    target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    setTimeout(() => target.focus(), 300);
+}
 </script>
 </body>
 </html>
