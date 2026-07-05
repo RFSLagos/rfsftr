@@ -1200,7 +1200,7 @@ function showConfirmOverlay() {
 
 // Manual fallback — submit bar button still works
 function confirmSubmitted() {
-    showConfirmOverlay();
+    showSubmitted();
 }
 
 // Go Back — reload the form URL from session, close overlay
@@ -1297,7 +1297,7 @@ function startSubmissionPolling(regNumber) {
                 unlockDoneButton();
             }
         } catch(e) { /* silent — network blip, retry next interval */ }
-    }, 15000);
+    }, 3000); // poll every 3 seconds
 }
 
 function unlockDoneButton() {
