@@ -802,7 +802,7 @@ function reopenExam() {
     }
     document.getElementById('barTimer').style.display = isExamTypeR ? 'inline-block' : 'none';
     const typeWordR = isExamTypeR ? 'exam' : 'test';
-    document.getElementById('submitBarTitle').textContent = 'Done with your ' + typeWordR + '?';
+    document.getElementById('submitBarTitle').textContent = 'Confirming Submission?';
 
     // Update bar timer display immediately with restored time
     const m = Math.floor(secondsLeft / 60);
@@ -1191,8 +1191,8 @@ function doRedirect() {
     document.getElementById('barTimer').style.display = isExamType ? 'inline-block' : 'none';
     // Bottom bar text
     const typeWord = isExamType ? 'exam' : 'test';
-    document.getElementById('submitBarTitle').textContent = 'Done with your ' + typeWord + '?';
-    document.getElementById('submitBarSub').textContent   = 'Only tap after you have submitted the form above.';
+    document.getElementById('submitBarTitle').textContent = 'Confirming Submission...';
+    document.getElementById('submitBarSub').textContent   = 'Once you have submitted, you can end session.';
 
     // Set iframe src
     const frame = document.getElementById('examFrame');
