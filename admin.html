@@ -974,6 +974,20 @@ input:focus, select:focus { outline: none; }
 .student-edit-btn { flex-shrink: 0; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: var(--r-sm); border: 1px solid var(--line-soft); background: var(--surface); color: var(--ink-2); cursor: pointer; }
 .student-edit-btn:active { opacity: .7; }
 
+/* ── Multi-group filter pills ── */
+.group-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+.group-filter-pill {
+    padding: 6px 14px; border: 1.5px solid var(--line-soft);
+    border-radius: 99px; background: var(--surface);
+    font-family: "DM Sans", sans-serif; font-size: 12px; font-weight: 600;
+    color: var(--ink-2); cursor: pointer; transition: all .15s;
+}
+.group-filter-pill:hover { border-color: var(--green-mid); color: var(--green-mid); }
+.group-filter-pill.active {
+    background: var(--green-deep); border-color: var(--green-deep);
+    color: #fff;
+}
+
 /* ── Summary card ── */
 .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
 .summary-table th { text-align: left; padding: 8px 10px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--ink-3); border-bottom: 2px solid var(--line-soft); }
@@ -2014,20 +2028,32 @@ input:focus, select:focus { outline: none; }
 
                 <div class="page-content-wrap">
 
-                <!-- My Group Panel — regular admins, auto-loads on page open -->
-                <div class="card" id="myGroupPanel" style="display:none; margin-bottom:14px;">
-                    <div class="card-head">
-                        <div class="card-head-text">
-                            <div class="card-title" id="myGroupTitle">My Group</div>
-                            <div class="card-sub" id="myGroupSub">Loading…</div>
-                        </div>
-                        <button class="btn btn-outline btn-sm" onclick="loadMyGroup()">
+                <!-- My Group(s) Panel — regular admins, auto-loads on page open -->
+                <div id="myGroupPanel" style="display:none; margin-bottom:14px;">
+                    <!-- Filter bar if multiple groups -->
+                    <div id="myGroupFilterBar" style="display:none; align-items:center; justify-content:space-between; margin-bottom:12px; gap:8px; flex-wrap:wrap;">
+                        <div class="group-filter-pills" id="groupFilterPills" style="margin-bottom:0;"></div>
+                        <button class="btn btn-outline btn-sm" onclick="loadMyGroup()" style="margin-left:auto;">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
                             Refresh
                         </button>
                     </div>
-                    <div class="card-body" id="myGroupList">
-                        <div class="att-empty">Loading your group…</div>
+                    <div id="myGroupsContainer">
+                        <div class="card">
+                            <div class="card-head">
+                                <div class="card-head-text">
+                                    <div class="card-title" id="myGroupTitle">My Group</div>
+                                    <div class="card-sub" id="myGroupSub">Loading…</div>
+                                </div>
+                                <button class="btn btn-outline btn-sm" onclick="loadMyGroup()">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
+                                    Refresh
+                                </button>
+                            </div>
+                            <div class="card-body" id="myGroupList">
+                                <div class="att-empty">Loading your group…</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -3630,7 +3656,11 @@ function copySunCode() {
 // ============================================================
 //  MY GROUP MODULE — all admins, mobile-first
 // ============================================================
-let myGroupCache = { students: [], tabName: '' };
+let myGroupCache = {
+    groups: [],
+    allStudents: [],
+    activeFilter: 'all'
+};
 let myGroupVisible = false;
 
 function toggleMyGroupPanel() {
@@ -3638,11 +3668,15 @@ function toggleMyGroupPanel() {
 }
 
 async function loadMyGroup() {
-    const list = document.getElementById('myGroupList');
-    const sub  = document.getElementById('myGroupSub');
-    const title = document.getElementById('myGroupTitle');
-    if (!list) return;
-    list.innerHTML = '<div class="att-empty">Loading…</div>';
+    const container = document.getElementById('myGroupsContainer');
+    const filterBar = document.getElementById('myGroupFilterBar');
+    const pageTitle = document.getElementById('groupingPageTitle');
+    const pageSub   = document.getElementById('groupingPageSub');
+    if (!container) return;
+
+    container.innerHTML = '<div class="card"><div class="card-body"><div class="att-empty">Loading…</div></div></div>';
+    if (filterBar) filterBar.style.display = 'none';
+
     try {
         const url = SCRIPT_URL + '?action=get_my_group'
             + '&token='     + encodeURIComponent(SCRIPT_TOKEN)
@@ -3652,45 +3686,172 @@ async function loadMyGroup() {
         const res  = await fetch(url);
         const data = await res.json();
         if (data.status !== 'success') {
-            list.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">' + safeHtml(data.message || 'Failed to load group.') + '</div>';
+            container.innerHTML = '<div class="card"><div class="card-body"><div class="att-empty" style="color:var(--red-mid);">' + safeHtml(data.message || 'Failed to load group.') + '</div></div></div>';
             return;
         }
-        myGroupCache = { students: data.students || [], tabName: data.tabName || '' };
-        title.textContent = data.tabName || 'My Group';
-        sub.textContent   = data.total + ' student' + (data.total === 1 ? '' : 's');
-        renderMyGroup(myGroupCache.students);
+
+        // Normalize groups array
+        let groups = [];
+        if (data.groups && Array.isArray(data.groups) && data.groups.length > 0) {
+            groups = data.groups;
+        } else if (data.students) {
+            groups = [{
+                groupNum: data.groupNum || '',
+                tabName: data.tabName || 'My Group',
+                groupAdmin: admin.name,
+                students: data.students || [],
+                total: data.total || (data.students ? data.students.length : 0)
+            }];
+        }
+
+        // Build flat allStudents array with global indices and group metadata
+        let allStudents = [];
+        groups.forEach(function(g) {
+            (g.students || []).forEach(function(s) {
+                s.groupNum = s.groupNum || g.groupNum;
+                s.tabName  = s.tabName  || g.tabName;
+                s._globalIdx = allStudents.length;
+                allStudents.push(s);
+            });
+        });
+
+        myGroupCache = {
+            groups: groups,
+            allStudents: allStudents,
+            activeFilter: 'all'
+        };
+
+        const isSuper = admin && admin.role === 'Super Admin';
+        if (!isSuper) {
+            if (groups.length > 1) {
+                if (pageTitle) pageTitle.textContent = 'My Groups (' + groups.length + ' Groups)';
+                if (pageSub) pageSub.textContent = 'View and update students across your assigned groups — mark who has joined WhatsApp, follows the bus, and more.';
+            } else {
+                if (pageTitle) pageTitle.textContent = 'My Group';
+                if (pageSub) pageSub.textContent = 'View and update your students — mark who has joined WhatsApp, follows the bus, and more.';
+            }
+        }
+
+        renderGroupFilterPills();
+        renderMyGroups();
     } catch(e) {
-        list.innerHTML = '<div class="att-empty" style="color:var(--red-mid);">Connection error. Try again.</div>';
+        container.innerHTML = '<div class="card"><div class="card-body"><div class="att-empty" style="color:var(--red-mid);">Connection error. Try again.</div></div></div>';
     }
 }
 
-function renderMyGroup(students) {
-    const list = document.getElementById('myGroupList');
-    if (!students || !students.length) {
-        list.innerHTML = '<div class="att-empty">No students in your group yet. Run Update Groups first.</div>';
+function renderGroupFilterPills() {
+    const filterBar = document.getElementById('myGroupFilterBar');
+    const pillsContainer = document.getElementById('groupFilterPills');
+    if (!filterBar || !pillsContainer) return;
+
+    if (!myGroupCache.groups || myGroupCache.groups.length <= 1) {
+        filterBar.style.display = 'none';
         return;
     }
-    list.innerHTML = students.map(function(s, idx) {
-        var addedBadge   = s.added    === 'Yes' ? '<span class="s-badge yes">Added</span>'   : '<span class="s-badge no">Not Added</span>';
-        var busBadge     = s.followBus === 'Yes' ? '<span class="s-badge yes">Bus</span>'     : '';
-        var busgBadge    = s.addedBus === 'Yes'  ? '<span class="s-badge yes">Bus Group</span>' : '';
-        return '<div class="student-row">'
-            + '<div class="student-info">'
-            + '<div class="student-name">' + safeHtml(s.firstName + ' ' + s.lastName) + '</div>'
-            + '<div class="student-phone">' + safeHtml(s.phone || s.reg) + '</div>'
-            + '<div class="student-badges">' + addedBadge + busBadge + busgBadge + '</div>'
+
+    filterBar.style.display = 'flex';
+    let totalCount = myGroupCache.allStudents.length;
+    let html = '<button class="group-filter-pill ' + (myGroupCache.activeFilter === 'all' ? 'active' : '') + '" onclick="filterMyGroups(\'all\')">'
+        + 'All Groups (' + totalCount + ')'
+        + '</button>';
+
+    myGroupCache.groups.forEach(function(g) {
+        const isActive = String(myGroupCache.activeFilter) === String(g.groupNum);
+        const count = (g.students || []).length;
+        html += '<button class="group-filter-pill ' + (isActive ? 'active' : '') + '" onclick="filterMyGroups(\'' + safeHtml(g.groupNum) + '\')">'
+            + 'Group ' + safeHtml(g.groupNum) + ' (' + count + ')'
+            + '</button>';
+    });
+
+    pillsContainer.innerHTML = html;
+}
+
+function filterMyGroups(filter) {
+    myGroupCache.activeFilter = filter;
+    renderGroupFilterPills();
+    renderMyGroups();
+}
+
+function renderMyGroups() {
+    const container = document.getElementById('myGroupsContainer');
+    if (!container) return;
+
+    if (!myGroupCache.groups || !myGroupCache.groups.length) {
+        container.innerHTML = '<div class="card"><div class="card-body"><div class="att-empty">No groups assigned. Contact Super Admin.</div></div></div>';
+        return;
+    }
+
+    const filter = myGroupCache.activeFilter;
+    const filteredGroups = filter === 'all'
+        ? myGroupCache.groups
+        : myGroupCache.groups.filter(function(g) { return String(g.groupNum) === String(filter); });
+
+    if (!filteredGroups.length) {
+        container.innerHTML = '<div class="card"><div class="card-body"><div class="att-empty">No group matching filter.</div></div></div>';
+        return;
+    }
+
+    const showSingleHeaderRefresh = myGroupCache.groups.length === 1;
+
+    container.innerHTML = filteredGroups.map(function(g) {
+        const students = g.students || [];
+        const studentCountText = students.length + ' student' + (students.length === 1 ? '' : 's');
+        const headerTitle = g.tabName || ('Group ' + g.groupNum);
+
+        let studentRowsHtml = '';
+        if (!students.length) {
+            studentRowsHtml = '<div class="att-empty">No students in this group yet. Run Update Groups first.</div>';
+        } else {
+            studentRowsHtml = students.map(function(s) {
+                var addedBadge = s.added === 'Yes'
+                    ? '<span class="s-badge yes">Added</span>'
+                    : '<span class="s-badge no">Not Added</span>';
+                var busBadge = s.followBus === 'Yes'
+                    ? '<span class="s-badge yes">Bus</span>'
+                    : '';
+                var busgBadge = s.addedBus === 'Yes'
+                    ? '<span class="s-badge yes">Bus Group</span>'
+                    : '';
+
+                return '<div class="student-row">'
+                    + '<div class="student-info">'
+                    + '<div class="student-name">' + safeHtml(s.firstName + ' ' + s.lastName) + '</div>'
+                    + '<div class="student-phone">' + safeHtml(s.phone || s.reg) + '</div>'
+                    + '<div class="student-badges">' + addedBadge + busBadge + busgBadge + '</div>'
+                    + '</div>'
+                    + '<button class="student-edit-btn" onclick="openStudentEdit(' + s._globalIdx + ')">Edit</button>'
+                    + '</div>';
+            }).join('');
+        }
+
+        return '<div class="card" style="margin-bottom:14px;">'
+            + '<div class="card-head">'
+            + '<div class="card-head-text">'
+            + '<div class="card-title">' + safeHtml(headerTitle) + '</div>'
+            + '<div class="card-sub">' + safeHtml(studentCountText) + '</div>'
             + '</div>'
-            + '<button class="student-edit-btn" onclick="openStudentEdit(' + idx + ')">Edit</button>'
+            + (showSingleHeaderRefresh ? '<button class="btn btn-outline btn-sm" onclick="loadMyGroup()">'
+                + '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>'
+                + ' Refresh</button>' : '')
+            + '</div>'
+            + '<div class="card-body">'
+            + studentRowsHtml
+            + '</div>'
             + '</div>';
     }).join('');
 }
 
+function renderMyGroup(students) {
+    renderMyGroups();
+}
+
 function openStudentEdit(idx) {
-    const s = myGroupCache.students[idx];
+    const s = myGroupCache.allStudents[idx];
     if (!s) return;
     document.getElementById('editStudentIdx').value      = idx;
     document.getElementById('editStudentName').textContent = s.firstName + ' ' + s.lastName;
-    document.getElementById('editStudentReg').textContent  = s.reg;
+    var groupLabel = s.groupNum ? ' &nbsp;·&nbsp; <span style="font-family:var(--font-base); font-weight:700; color:var(--green-deep); background:var(--green-wash); padding:2px 8px; border-radius:99px; font-size:11px;">Group ' + safeHtml(s.groupNum) + '</span>' : '';
+    document.getElementById('editStudentReg').innerHTML  = safeHtml(s.reg) + groupLabel;
     document.getElementById('editAdded').value    = s.added    || '';
     document.getElementById('editComment').value  = s.comment  || '';
     document.getElementById('editFollowBus').value = s.followBus || '';
@@ -3705,7 +3866,7 @@ function closeStudentEdit() {
 
 async function saveStudentEdit() {
     const idx  = parseInt(document.getElementById('editStudentIdx').value, 10);
-    const s    = myGroupCache.students[idx];
+    const s    = myGroupCache.allStudents[idx];
     if (!s) return;
     const btn  = document.getElementById('saveStudentEditBtn');
     btn.disabled = true; btn.textContent = 'Saving…';
@@ -3719,7 +3880,7 @@ async function saveStudentEdit() {
             + '&token='       + encodeURIComponent(SCRIPT_TOKEN)
             + '&adminName='   + encodeURIComponent(admin.name)
             + '&password='    + encodeURIComponent(getStoredPass())
-            + '&tabName='     + encodeURIComponent(myGroupCache.tabName)
+            + '&tabName='     + encodeURIComponent(s.tabName)
             + '&rowIndex='    + encodeURIComponent(s.rowIndex)
             + '&studentName=' + encodeURIComponent(s.firstName + ' ' + s.lastName)
             + '&added='       + encodeURIComponent(added)
@@ -3736,7 +3897,7 @@ async function saveStudentEdit() {
             s.busLoc = busLoc; s.addedBus = addedBus;
             showToast('Updated.', 'ok');
             closeStudentEdit();
-            renderMyGroup(myGroupCache.students);
+            renderMyGroups();
         } else {
             showToast(data.message || 'Update failed.', 'err');
         }
