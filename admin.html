@@ -987,24 +987,29 @@ input:focus, select:focus { outline: none; }
 /* ── Multi-group filter bar & pills (All devices: Desktop & Mobile) ── */
 .my-group-filter-bar {
     display: none;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
     gap: 8px;
     margin-bottom: 14px;
     width: 100%;
-    flex-wrap: nowrap !important;
+}
+.my-group-filter-top {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    width: 100%;
 }
 .group-filter-pills {
     display: flex;
     align-items: center;
     gap: 6px;
-    flex: 1;
+    width: 100%;
     min-width: 0;
     overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    padding-bottom: 2px;
 }
 .group-filter-pills::-webkit-scrollbar {
     display: none;
@@ -1059,6 +1064,24 @@ input:focus, select:focus { outline: none; }
 .group-refresh-btn:hover {
     border-color: var(--green-mid);
     color: var(--green-mid);
+}
+
+@media (min-width: 721px) {
+    .my-group-filter-bar {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+    .my-group-filter-top {
+        width: auto;
+        order: 2;
+    }
+    .group-filter-pills {
+        flex: 1;
+        order: 1;
+        padding-bottom: 0;
+    }
 }
 
 /* ── Summary card ── */
@@ -1880,11 +1903,13 @@ input:focus, select:focus { outline: none; }
                 <div id="myGroupPanel" style="display:none; margin-bottom:14px;">
                     <!-- Filter bar if multiple groups -->
                     <div id="myGroupFilterBar" class="my-group-filter-bar">
+                        <div class="my-group-filter-top">
+                            <button class="group-refresh-btn" onclick="loadMyGroup()" title="Refresh your groups">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
                         <div class="group-filter-pills" id="groupFilterPills"></div>
-                        <button class="group-refresh-btn" onclick="loadMyGroup()" title="Refresh your groups">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.5 15a9 9 0 1 1-.5-5"/></svg>
-                            <span>Refresh</span>
-                        </button>
                     </div>
                     <div id="myGroupsContainer">
                         <div class="card">
