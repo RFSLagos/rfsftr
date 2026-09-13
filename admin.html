@@ -2237,63 +2237,6 @@
                 background: var(--surface);
                 color: var(--ink-3);
             }
-        /* ── Group filter pills ── */
-        #myGroupFilterBar {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-            padding: 0 0 14px 0;
-            margin-bottom: 2px;
-            border-bottom: 1px solid var(--line-soft);
-        }
-        .group-filter-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 13px;
-            border-radius: 99px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1.5px solid var(--line-soft);
-            background: var(--surface);
-            color: var(--ink-2);
-            cursor: pointer;
-            transition: background .15s, border-color .15s, color .15s;
-            white-space: nowrap;
-        }
-        .group-filter-pill:hover {
-            border-color: var(--green-mid);
-            color: var(--green-deep);
-        }
-        .group-filter-pill.active {
-            background: var(--green-mid);
-            border-color: var(--green-mid);
-            color: #fff;
-        }
-        .group-filter-pill .pill-count {
-            background: rgba(255,255,255,0.25);
-            border-radius: 99px;
-            padding: 1px 6px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-        .group-filter-pill:not(.active) .pill-count {
-            background: var(--line-soft);
-            color: var(--ink-3);
-        }
-        .group-section-head {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 10px 0 6px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            color: var(--ink-3);
-            border-bottom: 1px solid var(--line-soft);
-            margin-bottom: 4px;
-        }
 
             .student-edit-btn {
                 flex-shrink: 0;
@@ -4358,6 +4301,9 @@
                     <div class="page-content-wrap">
 
                         <!-- My Group Panel — regular admins, auto-loads on page open -->
+                        <!-- My Group group pills — shown outside card, same as att-day-pills -->
+                        <div class="att-day-pills" id="myGroupPills" style="display:none; max-width:100%;"></div>
+
                         <div class="card" id="myGroupPanel" style="display:none; margin-bottom:14px;">
                             <div class="card-head">
                                 <div class="card-head-text">
@@ -4373,10 +4319,7 @@
                                     Refresh
                                 </button>
                             </div>
-                            <div class="card-body" style="padding-top:14px;">
-                                <!-- Filter pills — hidden for single-group admins -->
-                                <div id="myGroupFilterBar" style="display:none;"></div>
-                                <!-- Student list -->
+                            <div class="card-body">
                                 <div id="myGroupList">
                                     <div class="att-empty">Loading your group…</div>
                                 </div>
@@ -6094,22 +6037,20 @@
         }
 
         function renderMyGroupFilterBar(groups, isMulti) {
-            const bar = document.getElementById('myGroupFilterBar');
-            if (!bar) return;
-            if (!isMulti) { bar.style.display = 'none'; bar.innerHTML = ''; return; }
-            bar.style.display = 'flex';
+            const pills = document.getElementById('myGroupPills');
+            if (!pills) return;
+            if (!isMulti) { pills.style.display = 'none'; pills.innerHTML = ''; return; }
+            pills.style.display = 'flex';
             const allCount = groups.reduce(function(sum, g) { return sum + g.students.length; }, 0);
-            var pills = '<button class="group-filter-pill active" data-filter="all" onclick="filterMyGroups(this, &quot;all&quot;)">'
-                + 'All Groups <span class="pill-count">' + allCount + '</span></button>';
+            var html = '<button class="att-day-pill active" onclick="filterMyGroups(this, &quot;all&quot;)">All (' + allCount + ')</button>';
             groups.forEach(function(g) {
-                pills += '<button class="group-filter-pill" data-filter="' + g.groupNum + '" onclick="filterMyGroups(this, &quot;' + g.groupNum + '&quot;)">'
-                    + 'Group ' + g.groupNum + ' <span class="pill-count">' + g.students.length + '</span></button>';
+                html += '<button class="att-day-pill" onclick="filterMyGroups(this, &quot;' + g.groupNum + '&quot;)">Group ' + g.groupNum + ' (' + g.students.length + ')</button>';
             });
-            bar.innerHTML = pills;
+            pills.innerHTML = html;
         }
 
         function filterMyGroups(btn, groupNum) {
-            document.querySelectorAll('.group-filter-pill').forEach(function(p) { p.classList.remove('active'); });
+            document.querySelectorAll('#myGroupPills .att-day-pill').forEach(function(p) { p.classList.remove('active'); });
             btn.classList.add('active');
             if (groupNum === 'all') {
                 renderMyGroups(myGroupCache.students, null);
