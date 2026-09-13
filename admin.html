@@ -6071,24 +6071,26 @@
             const showAll  = !activeGroupNum || activeGroupNum === 'all';
             const allStudents = myGroupCache.students || [];
 
+            // Index lookup by reg — indexOf fails on different object references
+            function idxOf(s) {
+                return allStudents.findIndex(function(a) { return a.reg === s.reg; });
+            }
+
             // In multi-group + show-all mode → group sections
             if (isMulti && showAll) {
                 var html = '';
                 (myGroupCache.groups || []).forEach(function(g) {
-                    html += '<div class="group-section-head">Group ' + safeHtml(g.groupNum)
+                    html += '<div style="padding:10px 0 6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-3); border-bottom:1px solid var(--line-soft); margin-bottom:4px;">Group ' + safeHtml(g.groupNum)
                         + ' <span style="font-weight:400;text-transform:none;letter-spacing:0;color:var(--ink-3);">'
                         + g.students.length + ' students</span></div>';
                     html += g.students.map(function(s) {
-                        var globalIdx = allStudents.indexOf(s);
-                        return renderStudentRow(s, globalIdx);
+                        return renderStudentRow(s, idxOf(s));
                     }).join('');
                 });
                 list.innerHTML = html;
             } else {
-                // Single group or filtered — flat list
                 list.innerHTML = students.map(function(s) {
-                    var globalIdx = allStudents.indexOf(s);
-                    return renderStudentRow(s, globalIdx);
+                    return renderStudentRow(s, idxOf(s));
                 }).join('');
             }
         }
