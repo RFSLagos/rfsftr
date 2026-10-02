@@ -500,12 +500,6 @@
             background: rgba(255, 255, 255, 0.10);
         }
 
-        .tb-toggle.active.test {
-            background: rgba(197, 138, 27, 0.20);
-            border-color: rgba(197, 138, 27, 0.45);
-            color: #FFC766;
-        }
-
         .tb-toggle.active.exam-open {
             background: rgba(46, 190, 96, 0.18);
             border-color: rgba(46, 190, 96, 0.40);
@@ -3446,17 +3440,6 @@
             <div class="tb-spacer"></div>
 
             <div class="tb-right">
-                <button class="tb-toggle" id="testToggle" onclick="toggleTestMode()"
-                    title="Toggle test mode (Super Admin only)" style="display:none;">
-                    <svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M6 3v6a6 6 0 0 0 12 0V3" />
-                        <path d="M5 21h14" />
-                        <path d="M9 21l1-6" />
-                        <path d="M15 21l-1-6" />
-                    </svg>
-                    <span id="testToggleLabel">Test Mode</span>
-                </button>
                 <button class="tb-toggle checking" id="examToggle" onclick="toggleExamOpen()"
                     title="Open or close the assessment portal">
                     <svg class="tb-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -3494,8 +3477,8 @@
             </div>
         </header>
 
-        <div class="test-banner" id="testBanner">Test Mode Active — entries will be marked as TEST in the attendance
-            sheet</div>
+        <div class="test-banner" id="testBanner">Test Mode is ON — entries are marked as TEST. Turn it off in Master Config
+            → Sunday tab, column H.</div>
 
         <!-- BODY GRID: Sidebar / Main / Rail -->
         <div class="body-grid">
@@ -4627,8 +4610,6 @@
             document.getElementById('tbAvatar').textContent = initials;
             document.getElementById('tbAvatar').title = admin.name + ' · ' + (admin.role || 'Admin');
 
-            // Test toggle visibility (Super Admin only)
-            document.getElementById('testToggle').style.display = (admin.role === 'Super Admin') ? 'inline-flex' : 'none';
             // Grouping nav + mobile FAB (Super Admin only)
             const isSuper = admin.role === 'Super Admin';
             document.getElementById('navGrouping').style.display = 'flex'; // visible to all admins
@@ -5028,35 +5009,12 @@
         }
 
         // ============================================================
-        //  TEST MODE
+        //  TEST MODE — read-only indicator. The toggle was removed from the
+        //  dashboard; Test Mode can only be changed in Master Config → Sunday!H.
         // ============================================================
         function updateTestModeUI(isActive) {
             testModeOn = !!isActive;
-            const tog = document.getElementById('testToggle');
-            const banner = document.getElementById('testBanner');
-            if (testModeOn) { tog.classList.add('active', 'test'); banner.classList.add('show'); }
-            else { tog.classList.remove('active', 'test'); banner.classList.remove('show'); }
-        }
-
-        async function toggleTestMode() {
-            if (!sessionData) { showToast('Load a session first', 'err'); return; }
-            const newVal = !testModeOn;
-            const cls = document.getElementById('selClass').value;
-            const yr = document.getElementById('selYear').value;
-            const st = document.getElementById('selStream').value;
-            showToast(newVal ? 'Enabling test mode…' : 'Disabling test mode…', 'warn');
-            try {
-                const url = SCRIPT_URL + '?action=admin_testmode&token=' + encodeURIComponent(SCRIPT_TOKEN) + '&adminName=' + encodeURIComponent(admin.name)
-                    + '&password=' + encodeURIComponent(getStoredPass())
-                    + '&class=' + cls + '&year=' + yr + '&stream=' + st
-                    + '&testMode=' + (newVal ? 'TRUE' : 'FALSE');
-                const res = await fetch(url); const data = await res.json();
-                if (data.status === 'success') {
-                    updateTestModeUI(newVal);
-                    showToast(newVal ? 'Test mode enabled' : 'Test mode disabled', 'ok');
-                    await autoLoadSession();
-                } else showToast(data.message || 'Failed', 'err');
-            } catch (e) { showToast('Connection error', 'err'); }
+            document.getElementById('testBanner').classList.toggle('show', testModeOn);
         }
 
         // ============================================================
