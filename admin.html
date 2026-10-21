@@ -1206,6 +1206,72 @@
             display: block;
         }
 
+        /* Score Upload: topics from the Assessment Plan + Check Plan */
+        .upload-result.warn,
+        .plan-result.warn {
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .topics-state {
+            display: none;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            margin-top: 12px;
+            padding: 10px 12px;
+            border-radius: var(--r-sm);
+            font-size: 12px;
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .topics-state.show {
+            display: flex;
+        }
+
+        .topics-state.bad,
+        .plan-result.bad {
+            background: var(--rose-soft);
+            color: var(--rose-text);
+        }
+
+        .plan-result {
+            display: none;
+            margin-bottom: 14px;
+            padding: 10px 12px;
+            border-radius: var(--r-sm);
+            font-size: 12px;
+            line-height: 1.5;
+            white-space: pre-wrap;
+            background: var(--line-soft);
+            color: var(--ink-2);
+        }
+
+        .plan-result.show {
+            display: block;
+        }
+
+        .plan-result.ok {
+            background: var(--green-soft);
+            color: var(--green-deep);
+        }
+
+        /* Sunday card: invalid window times in Master Config (sunWindowError) */
+        .sun-warn {
+            display: none;
+            margin: -6px 0 14px;
+            padding: 10px 14px;
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .sun-warn.show {
+            display: block;
+        }
+
         /* PERMISSIONS */
         .perm-list {
             display: flex;
@@ -3727,6 +3793,7 @@
                         </div>
                         <div class="card-body">
                             <div class="status-row" id="sunStatus">Load a session to see Sunday status</div>
+                            <div class="sun-warn" id="sunWindowWarn"></div>
                             <div class="btn-row">
                                 <button class="btn btn-primary btn-sm" id="btnSunOpen" onclick="sunOpen()" disabled>Open
                                     Window</button>
@@ -4149,20 +4216,34 @@
                         <!-- Tab 2 — Score Upload -->
                         <div class="assess-tab-panel" id="panelScores">
                             <div class="card">
+                                <div class="card-head">
+                                    <div class="card-head-text">
+                                        <div class="card-title">Score Upload</div>
+                                        <div class="card-sub">Types and topics come from the Assessment Plan tab in
+                                            Master Config.</div>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" id="btnCheckPlan" onclick="checkPlan()"
+                                        style="white-space:nowrap;">Check Plan</button>
+                                </div>
                                 <div class="card-body">
+                                    <div class="plan-result" id="planResult"></div>
                                     <div class="sel-grid">
                                         <div class="sel-field">
                                             <label>Assessment Type</label>
-                                            <select id="scoreType" class="input" onchange="updateTopicList()">
-                                                <option value="TEST">Test</option>
-                                                <option value="ASSIGNMENT">Assignment</option>
-                                                <option value="EXAM">Exam</option>
+                                            <!-- Built from get_topics (Active Assessment Plan rows) — no hardcoded list -->
+                                            <select id="scoreType" class="input" onchange="updateTopicList()" disabled>
+                                                <option value="">Loading…</option>
                                             </select>
                                         </div>
                                         <div class="sel-field">
                                             <label>Topic</label>
-                                            <select id="scoreTopic" class="input"></select>
+                                            <select id="scoreTopic" class="input" disabled></select>
                                         </div>
+                                    </div>
+                                    <div class="topics-state" id="topicsState">
+                                        <span id="topicsStateText"></span>
+                                        <button class="btn btn-outline btn-sm" id="btnTopicsRetry" onclick="fetchTopics()"
+                                            style="white-space:nowrap; display:none;">Retry</button>
                                     </div>
 
                                     <div class="upload-zone" id="uploadZone"
@@ -4936,6 +5017,13 @@
             const btnC = document.getElementById('btnSunClose');
             document.getElementById('btnSunSaveCode').disabled = false;
 
+            // Invalid window times in Master Config (from the admin script) — shown on any day
+            const warnEl = document.getElementById('sunWindowWarn');
+            if (warnEl && 'sunWindowError' in data) {
+                warnEl.textContent = data.sunWindowError ? '⚠ ' + data.sunWindowError : '';
+                warnEl.classList.toggle('show', !!data.sunWindowError);
+            }
+
             if (data.testMode) {
                 // Test mode — admin toggled it on
                 pill.textContent = 'Test Mode'; pill.className = 'pill pill-test';
@@ -4963,7 +5051,7 @@
             } else {
                 // Fully closed
                 pill.textContent = 'Closed'; pill.className = 'pill pill-closed';
-                status.textContent = 'Window is closed.';
+                status.textContent = 'Window is closed.' + (data.sunMessage ? ' ' + data.sunMessage : '');
                 btnO.disabled = false; btnC.disabled = true;
             }
         }
@@ -5391,41 +5479,88 @@
         // ============================================================
         //  SCORES — CSV upload
         // ============================================================
-        // Topics fetched from unified script after login — do not hardcode here
-        let TEST_TOPICS = [];
-        let ASSIGNMENT_TOPICS = [];
-        let EXAM_TOPIC = 'Final Exam';
+        // Types and topics come from the Assessment Plan via get_topics (extraTypes) — nothing is
+        // hardcoded here. A failed load shows a retry state; there is no stale fallback list.
+        let TEST_TOPICS = [];       // test topic names (old Report CSV path for an older backend)
+        let SCORE_TYPES = null;     // [{type, label, topics, items:[{topic, max}]}]; null = not loaded
         let csvFileData = null;
 
+        // An older unified script has no extraTypes: build the same shape from its topic lists
+        function scoreTypesFromLegacy(data) {
+            const list = [];
+            const add = (type, label, topics) => { if (topics.length) list.push({ type: type, label: label, topics: topics, items: topics.map(t => ({ topic: t, max: '' })) }); };
+            add('TEST', 'Test', data.testTopics || []);
+            add('ASSIGNMENT', 'Assignment', data.assignmentTopics || []);
+            add('EXAM', 'Exam', data.examTopic ? [data.examTopic] : []);
+            return list;
+        }
+
+        function setTopicsState(state, text) {
+            const box = document.getElementById('topicsState');
+            const retry = document.getElementById('btnTopicsRetry');
+            const typeSel = document.getElementById('scoreType');
+            const topicSel = document.getElementById('scoreTopic');
+            box.className = 'topics-state' + (state === 'ok' && !text ? '' : ' show') + (state === 'failed' ? ' bad' : '');
+            document.getElementById('topicsStateText').textContent = text || '';
+            retry.style.display = state === 'failed' ? '' : 'none';
+            if (state === 'loading' || state === 'failed' || state === 'empty') {
+                const label = state === 'loading' ? 'Loading…' : '—';
+                typeSel.innerHTML = '<option value="">' + label + '</option>';
+                topicSel.innerHTML = '<option value="">' + label + '</option>';
+                typeSel.disabled = true; topicSel.disabled = true;
+            }
+        }
+
         async function fetchTopics() {
+            setTopicsState('loading', '');
+            let planSource = '';
             try {
                 const url = UNIFIED_SCRIPT_URL + '?action=get_topics&cb=' + Date.now();
                 const res = await fetch(url);
                 const data = await res.json();
-                if (data.status === 'success') {
-                    TEST_TOPICS = data.testTopics || TEST_TOPICS;
-                    ASSIGNMENT_TOPICS = data.assignmentTopics || ASSIGNMENT_TOPICS;
-                    EXAM_TOPIC = data.examTopic || EXAM_TOPIC;
-                    updateTopicList();
-                }
-            } catch (e) { /* silent — falls back to empty arrays */ }
+                if (data.status !== 'success') throw new Error(data.message || 'get_topics failed');
+                TEST_TOPICS = data.testTopics || [];
+                SCORE_TYPES = Array.isArray(data.extraTypes) ? data.extraTypes : scoreTypesFromLegacy(data);
+                planSource = data.planSource || '';
+            } catch (e) {
+                SCORE_TYPES = null;
+                setTopicsState('failed', 'Couldn’t load topics — tap to retry.');
+                return;
+            }
+            if (!SCORE_TYPES.length) {
+                setTopicsState('empty', 'The Assessment Plan has no active topics. Press Check Plan to see why.');
+                return;
+            }
+            buildScoreTypeList();
+            setTopicsState('ok', planSource === 'fallback'
+                ? 'The Assessment Plan tabs have problems, so these are the built-in topics. Press Check Plan to see why.' : '');
+        }
+
+        function buildScoreTypeList() {
+            const sel = document.getElementById('scoreType');
+            const prev = sel.value;
+            sel.innerHTML = '';
+            SCORE_TYPES.forEach(function (t) {
+                const o = document.createElement('option');
+                o.value = t.type; o.textContent = t.label || t.type; sel.appendChild(o);
+            });
+            if (SCORE_TYPES.some(t => t.type === prev)) sel.value = prev;
+            sel.disabled = false;
+            updateTopicList();
         }
 
         function updateTopicList() {
             const type = document.getElementById('scoreType').value;
             const sel = document.getElementById('scoreTopic');
+            const entry = (SCORE_TYPES || []).find(t => t.type === type);
             sel.innerHTML = '';
-            const topics = type === 'TEST' ? TEST_TOPICS
-                : type === 'ASSIGNMENT' ? ASSIGNMENT_TOPICS
-                    : [EXAM_TOPIC];
-            if (!topics.length) {
+            if (!entry) { sel.innerHTML = '<option value="">—</option>'; sel.disabled = true; return; }
+            entry.items.forEach(function (it) {
                 const o = document.createElement('option');
-                o.value = ''; o.textContent = 'Loading topics…'; sel.appendChild(o); return;
-            }
-            topics.forEach(function (t) {
-                const o = document.createElement('option');
-                o.value = t; o.textContent = t; sel.appendChild(o);
+                o.value = it.topic; o.textContent = it.topic + (it.max !== '' && it.max !== undefined ? ' (out of ' + it.max + ')' : '');
+                sel.appendChild(o);
             });
+            sel.disabled = false;
         }
 
         function handleDragOver(e) { e.preventDefault(); document.getElementById('uploadZone').classList.add('drag-over'); }
@@ -5462,6 +5597,7 @@
             const type = document.getElementById('scoreType').value;
             const topic = document.getElementById('scoreTopic').value;
             const btn = document.getElementById('btnUploadScores');
+            if (!SCORE_TYPES || !type || !topic) { showToast('Topics are not loaded yet — tap Retry above', 'err'); return; }
 
             btn.disabled = true; btn.textContent = 'Uploading…';
             showToast('Uploading scores for ' + topic + '…', 'warn');
@@ -5480,21 +5616,86 @@
                     + '&csvData=' + encodeURIComponent(csvFileData);
                 const res = await fetch(url);
                 const data = await res.json();
+                const result = document.getElementById('uploadResult');
                 if (data.status === 'success') {
-                    showToast(data.message, 'ok');
-                    const result = document.getElementById('uploadResult');
-                    let msg = '✓ ' + data.written + ' score(s) uploaded for ' + topic;
+                    const rejected = data.rejected || [], warnings = data.warnings || [];
+                    showToast(data.message, rejected.length || warnings.length ? 'warn' : 'ok');
+                    let msg = '✓ ' + data.written + ' score(s) uploaded for ' + topic
+                        + (data.maxScore !== undefined ? ' (out of ' + data.maxScore + ')' : '');
                     if (data.skipped > 0) msg += ' · ' + data.skipped + ' row(s) skipped';
-                    if (data.errors && data.errors.length) msg += '\n⚠ ' + data.errors.join('\n');
-                    result.textContent = msg; result.classList.add('show');
+                    if (rejected.length) {
+                        msg += '\n\nNot uploaded:\n' + rejected.map(function (x) {
+                            return 'Row ' + x.row + (x.reg ? ' (' + x.reg + ')' : '') + ': '
+                                + (x.score !== '' && x.score !== undefined ? x.score + ' — ' : '') + x.reason;
+                        }).join('\n');
+                    } else if (data.errors && data.errors.length) msg += '\n⚠ ' + data.errors.join('\n');
+                    if (warnings.length) msg += '\n\n⚠ ' + warnings.join('\n⚠ ');
+                    result.textContent = msg;
+                    result.classList.toggle('warn', rejected.length > 0 || warnings.length > 0);
+                    result.classList.add('show');
                     csvFileData = null;
                     document.getElementById('uploadZone').querySelector('.upload-zone-title').textContent = 'Click to upload CSV or drag and drop';
                 } else {
                     showToast(data.message || 'Upload failed', 'err');
+                    if (data.message) {
+                        result.textContent = '✗ ' + data.message;
+                        result.classList.add('show', 'warn');
+                    }
                 }
             } catch (e) { showToast('Connection error', 'err'); }
 
             btn.disabled = false; btn.textContent = 'Upload Scores';
+        }
+
+        // ── Check Plan (read-only) ───────────────────────────────────
+        async function checkPlan() {
+            const box = document.getElementById('planResult');
+            const btn = document.getElementById('btnCheckPlan');
+            const cls = document.getElementById('selClass').value;
+            const yr = document.getElementById('selYear').value;
+            const st = document.getElementById('selStream').value;
+            btn.disabled = true;
+            box.className = 'plan-result show';
+            box.textContent = 'Checking the Assessment Plan…';
+            try {
+                const url = UNIFIED_SCRIPT_URL
+                    + '?action=admin_check_plan'
+                    + '&token=' + encodeURIComponent(SCRIPT_TOKEN)
+                    + '&adminName=' + encodeURIComponent(admin.name)
+                    + '&password=' + encodeURIComponent(getStoredPass())
+                    + '&class=' + encodeURIComponent(cls)
+                    + '&year=' + encodeURIComponent(yr)
+                    + '&stream=' + encodeURIComponent(st)
+                    + '&cb=' + Date.now();
+                const res = await fetch(url);
+                const data = await res.json();
+                if (data.status !== 'success') {
+                    box.className = 'plan-result show bad';
+                    box.textContent = data.message === 'Unknown action.'
+                        ? 'Check Plan needs the updated unified script. Paste the new version and redeploy.'
+                        : (data.message || 'Check Plan failed.');
+                } else {
+                    const errors = data.errors || [], warnings = data.warnings || [];
+                    const lines = [data.ok
+                        ? '✓ The plan is valid — results use the Assessment Plan and Scoring Rules tabs.'
+                        : '✗ The plan has problems. Until they are fixed, results use the built-in settings for the parts listed below.'];
+                    const sm = data.summary;
+                    if (sm && sm.marks) {
+                        const itemsOf = name => { const c = (sm.components || []).find(x => x.name === name); return c ? ' (' + c.items.length + ' item' + (c.items.length === 1 ? '' : 's') + ')' : ''; };
+                        lines.push('Marks: ' + sm.marks.map(m => m.name + ' ' + m.weight + itemsOf(m.name)).join(' · ') + ' = ' + sm.totalWeight
+                            + ' · Tests: ' + sm.testAverageMode + ' · Expected attendance: ' + sm.expectedAttendance);
+                    }
+                    if (errors.length) lines.push('\nProblems:\n• ' + errors.join('\n• '));
+                    if (warnings.length) lines.push('\nWarnings:\n• ' + warnings.join('\n• '));
+                    box.className = 'plan-result show ' + (!data.ok ? 'bad' : warnings.length ? 'warn' : 'ok');
+                    box.textContent = lines.join('\n');
+                    fetchTopics(); // the dropdowns follow the plan
+                }
+            } catch (e) {
+                box.className = 'plan-result show bad';
+                box.textContent = 'Connection error. Please try again.';
+            }
+            btn.disabled = false;
         }
 
         // ============================================================
@@ -5574,6 +5775,7 @@
         //  REPORT
         // ============================================================
         let reportData = null;
+        let reportPlan = null;   // data.plan from admin_compute_report (column description), null on an older backend
 
         async function generateReport() {
             const cls = document.getElementById('selClass').value;
@@ -5597,6 +5799,7 @@
                 const data = await res.json();
                 if (data.status !== 'success') { wrap.innerHTML = '<div class="att-empty">' + escHtml(data.message || 'Failed to generate report.') + '</div>'; return; }
                 reportData = data.results;
+                reportPlan = data.plan || null;
                 renderReport(data);
                 showToast('Report generated — ' + data.total + ' students', 'ok');
             } catch (e) {
@@ -5633,7 +5836,10 @@
                     + '<td>' + statBadge + '</td>'
                     + '</tr>';
             }).join('');
-            wrap.innerHTML = '<div class="rpt-table-wrap"><table class="rpt-table">'
+            const warnings = data.warnings || [];
+            const warnHtml = warnings.length
+                ? '<div class="plan-result show warn">⚠ ' + warnings.map(escHtml).join('<br>⚠ ') + '</div>' : '';
+            wrap.innerHTML = warnHtml + '<div class="rpt-table-wrap"><table class="rpt-table">'
                 + '<thead><tr><th>Reg No.</th><th>Name</th><th>Attended</th><th>Att %</th>'
                 + '<th>Eligibility</th><th>Test Avg</th><th>Exam</th><th>Total</th><th>Status</th></tr></thead>'
                 + '<tbody>' + rows + '</tbody></table></div>'
@@ -5642,8 +5848,41 @@
                 + '</div>';
         }
 
+        // CSV cell: quoted when it holds a comma, quote or line break
+        function csvCell(v) {
+            const t = v === null || v === undefined ? '' : String(v);
+            return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t;
+        }
+
         function downloadReport() {
             if (!reportData || !reportData.length) return;
+            if (reportPlan && reportPlan.components && reportPlan.marks) {
+                // Columns from the Assessment Plan: every active item, then every weighted mark
+                const items = [];
+                reportPlan.components.forEach(c => c.items.forEach(it => items.push(it)));
+                const headers = ['Reg Number', 'Last Name', 'First Name', 'Attended', 'Excused', 'Att%', 'Eligibility']
+                    .concat(items.map(it => it.topic + ' /' + it.max + (it.counted === false ? ' (not counted)' : '')))
+                    .concat(['Test Avg'])
+                    .concat(reportPlan.marks.map(m => m.name + ' /' + m.weight))
+                    .concat(['Grand Total', 'Final Status']);
+                const rows = reportData.map(function (r) {
+                    const sc = r.itemScores || {}, mk = r.componentMarks || {};
+                    return [r.reg, r.lastName, r.firstName, r.attPts, r.excused, r.attPct, r.eligibility]
+                        .concat(items.map(it => sc[it.key]))
+                        .concat([r.testAvg])
+                        .concat(reportPlan.marks.map(m => mk[m.name]))
+                        .concat([r.grandTotal, r.finalStatus])
+                        .map(csvCell).join(',');
+                });
+                const csvPlan = [headers.map(csvCell).join(','), ...rows].join('\n');
+                const blobPlan = new Blob([csvPlan], { type: 'text/csv' });
+                const aPlan = document.createElement('a');
+                aPlan.href = URL.createObjectURL(blobPlan);
+                aPlan.download = 'RFS_Report_' + new Date().toISOString().split('T')[0] + '.csv';
+                aPlan.click();
+                return;
+            }
+            // Older unified script (no plan in the reply): the previous fixed columns
             const TEST_TOPICS_SHORT = TEST_TOPICS.map(function (t) { return t.split(' ').map(function (w) { return w[0]; }).join('').substring(0, 6); });
             const headers = ['Reg Number', 'Last Name', 'First Name', 'Attended', 'Excused', 'Att%', 'Eligibility',
                 ...TEST_TOPICS_SHORT, 'Test Avg', 'AS1', 'AS2', 'AS3', 'Assign Marks',
@@ -5720,7 +5959,9 @@
                 closeQAQCConfirm();
 
                 if (data.status === 'success') {
-                    showToast(data.message || 'Computation complete ✓', 'ok');
+                    const nWarn = (data.warnings || []).length;
+                    if (nWarn) showToast((data.message || 'Computation complete') + ' — ' + nWarn + ' warning(s): run Check Plan (Score Upload)', 'warn');
+                    else showToast(data.message || 'Computation complete ✓', 'ok');
                 } else {
                     showToast(data.message || 'Computation failed. Please try again.', 'err');
                 }
