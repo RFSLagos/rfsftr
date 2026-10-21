@@ -1272,6 +1272,161 @@
             display: block;
         }
 
+        /* Form library: saved assessments, Check Forms, import from responses, end of stream cleanup */
+        .lib-summary {
+            display: none;
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            border-radius: var(--r-sm);
+            font-size: 13px;
+            background: var(--line-soft);
+            color: var(--ink-2);
+        }
+
+        .lib-summary.show {
+            display: block;
+        }
+
+        .lib-summary strong {
+            color: var(--green-deep);
+        }
+
+        .lib-summary.warn {
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .lib-msg {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .lib-msg .warn {
+            display: block;
+            margin-top: 6px;
+            padding: 8px 10px;
+            border-radius: var(--r-sm);
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .lib-err {
+            color: var(--rose-text);
+        }
+
+        .lib-warn {
+            color: var(--amber-text);
+        }
+
+        .lib-manual {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--line-soft);
+        }
+
+        .lib-manual>summary {
+            cursor: pointer;
+            margin-bottom: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--ink-2);
+        }
+
+        .mode-switch {
+            display: inline-flex;
+            margin-bottom: 14px;
+            border: 1.5px solid var(--line);
+            border-radius: var(--r-sm);
+            overflow: hidden;
+        }
+
+        .mode-switch button {
+            padding: 7px 14px;
+            border: 0;
+            background: var(--card);
+            color: var(--ink-2);
+            font: inherit;
+            font-size: 12.5px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .mode-switch button.active {
+            background: var(--green-deep);
+            color: #fff;
+        }
+
+        .mode-panel {
+            display: none;
+        }
+
+        .mode-panel.show {
+            display: block;
+        }
+
+        .imp-convert {
+            display: none;
+            align-items: center;
+            gap: 8px;
+            margin: 0 0 12px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--amber-text);
+        }
+
+        .imp-convert.show {
+            display: flex;
+        }
+
+        .imp-scroll {
+            max-height: 360px;
+            margin-top: 10px;
+            overflow: auto;
+        }
+
+        .imp-note {
+            margin-top: 10px;
+            font-size: 12.5px;
+            color: var(--ink-2);
+        }
+
+        .imp-warn {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-sm);
+            font-size: 12.5px;
+            background: var(--amber-soft);
+            color: var(--amber-text);
+        }
+
+        .imp-bad {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: var(--r-sm);
+            font-size: 12.5px;
+            background: var(--rose-soft);
+            color: var(--rose-text);
+        }
+
+        .cleanup-tab-list h4 {
+            margin: 14px 0 6px;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--ink-3);
+        }
+
+        .rpt-table tr.blocked td {
+            color: var(--ink-3);
+        }
+
+        .rpt-table td .why {
+            display: block;
+            font-size: 11.5px;
+            color: var(--amber-text);
+        }
+
         /* PERMISSIONS */
         .perm-list {
             display: flex;
@@ -4094,11 +4249,35 @@
                                 <div class="card-head">
                                     <div class="card-head-text">
                                         <div class="card-title">Assessment Setup</div>
-                                        <div class="card-sub">Paste your pre-filled Google Form link to auto-extract
-                                            entry IDs and save the Config sheet in one click.</div>
+                                        <div class="card-sub">Choose a saved assessment from the Forms tab, or add a
+                                            form manually.</div>
                                     </div>
+                                    <button class="btn btn-outline btn-sm" id="btnCheckForms" onclick="checkForms()"
+                                        style="white-space:nowrap;">Check Forms</button>
                                 </div>
                                 <div class="card-body">
+                                    <div class="plan-result" id="formsCheckResult"></div>
+                                    <!-- Saved assessments (Forms tab in the Exam DB): names only, never a URL -->
+                                    <div class="sel-field" style="margin-bottom:12px;">
+                                        <label for="libSelect">Choose a saved assessment</label>
+                                        <select id="libSelect" class="input" onchange="onLibPick()" disabled>
+                                            <option value="">Loading saved assessments…</option>
+                                        </select>
+                                    </div>
+                                    <div class="topics-state bad" id="libError" role="alert">
+                                        <span id="libErrorText">Couldn’t load saved assessments.</span>
+                                        <button class="btn btn-outline btn-sm" onclick="loadLibrary()"
+                                            style="white-space:nowrap;">Tap to retry</button>
+                                    </div>
+                                    <div class="lib-summary" id="libSummary" aria-live="polite"></div>
+                                    <button class="btn btn-primary btn-sm btn-full" id="btnLibUse"
+                                        onclick="useLibraryForm()" disabled>Use this assessment</button>
+                                    <div class="lib-msg" id="libResult"></div>
+
+                                    <details class="lib-manual" id="setupManual">
+                                    <summary>Add or change a form manually</summary>
+                                    <div class="card-sub" style="margin-bottom:12px;">Paste your pre-filled Google Form
+                                        link to auto-extract entry IDs and save the Config sheet in one click.</div>
                                     <div class="code-field" style="margin-bottom:12px;">
                                         <label>Pre-filled Form URL <span
                                                 style="font-size:11px; color:var(--ink-3); font-weight:400;">(Google
@@ -4169,6 +4348,7 @@
                                         Save to Config Sheet
                                     </button>
                                     <div id="setupResult" style="margin-top:10px; font-size:13px;"></div>
+                                    </details>
                                 </div>
                             </div>
 
@@ -4210,6 +4390,32 @@
                                     <div id="resetCodeResult" style="margin-top:10px; font-size:13px;"></div>
                                 </div>
                             </div>
+
+                            <!-- Card 4: End of stream cleanup (Super Admin only — shown in showApp) -->
+                            <div class="card" id="cleanupCard" style="margin-top:14px; display:none;">
+                                <div class="card-head">
+                                    <div class="card-head-text">
+                                        <div class="card-title">End of Stream Cleanup</div>
+                                        <div class="card-sub">Super Admin only. Empties the form response tabs (the forms
+                                            stay linked). Import and check every score first.</div>
+                                    </div>
+                                </div>
+                                <div class="card-body">
+                                    <button class="btn btn-outline btn-sm" id="btnCleanupCheck"
+                                        onclick="cleanupDryRun()">Step 1 — Check what will be cleared</button>
+                                    <div id="cleanupPlan"></div>
+                                    <div id="cleanupStep2" style="display:none; margin-top:14px;">
+                                        <div class="code-field">
+                                            <label for="cleanupConfirm">Step 2 — type CLEAR to confirm</label>
+                                            <input type="text" id="cleanupConfirm" class="input mono" placeholder="CLEAR"
+                                                autocomplete="off" oninput="updateCleanupButton()">
+                                        </div>
+                                        <button class="btn btn-danger btn-sm btn-full" id="btnCleanupRun"
+                                            onclick="openCleanupConfirm()" disabled>Clear the ticked tabs</button>
+                                    </div>
+                                    <div class="lib-msg" id="cleanupResult"></div>
+                                </div>
+                            </div>
                         </div>
 
 
@@ -4227,6 +4433,14 @@
                                 </div>
                                 <div class="card-body">
                                     <div class="plan-result" id="planResult"></div>
+                                    <!-- Two ways to the same Scores rows: today's CSV upload (default) or import from a response tab -->
+                                    <div class="mode-switch" role="tablist">
+                                        <button type="button" id="modeCsv" class="active" role="tab"
+                                            onclick="setScoreMode('csv')">Upload CSV</button>
+                                        <button type="button" id="modeImport" role="tab"
+                                            onclick="setScoreMode('import')">Import from responses</button>
+                                    </div>
+                                    <div class="mode-panel show" id="panelCsv">
                                     <div class="sel-grid">
                                         <div class="sel-field">
                                             <label>Assessment Type</label>
@@ -4267,6 +4481,37 @@
                                     <button class="btn btn-primary btn-sm btn-full" id="btnUploadScores"
                                         onclick="uploadScores()" disabled style="margin-top:14px;">Upload
                                         Scores</button>
+                                    </div><!-- /panelCsv -->
+
+                                    <div class="mode-panel" id="panelImport">
+                                        <div class="sel-grid">
+                                            <div class="sel-field">
+                                                <label for="impSource">Responses from</label>
+                                                <select id="impSource" class="input" onchange="onImpSource()" disabled>
+                                                    <option value="">Loading…</option>
+                                                </select>
+                                            </div>
+                                            <div class="sel-field">
+                                                <label>Scores go to</label>
+                                                <div class="lib-summary show" id="impTargetFixed" style="margin:0;">—</div>
+                                            </div>
+                                        </div>
+                                        <div class="topics-state bad" id="impError" role="alert">
+                                            <span id="impErrorText">Couldn’t load the saved assessments.</span>
+                                            <button class="btn btn-outline btn-sm" onclick="loadImportSources()"
+                                                style="white-space:nowrap;">Tap to retry</button>
+                                        </div>
+                                        <label class="imp-convert" id="impConvertWrap">
+                                            <input type="checkbox" id="impConvert" onchange="previewImport()">
+                                            <span id="impConvertText"></span>
+                                        </label>
+                                        <button class="btn btn-outline btn-sm btn-full" id="btnImpPreview"
+                                            onclick="previewImport()" disabled>Preview</button>
+                                        <div id="impPreview"></div>
+                                        <button class="btn btn-primary btn-sm btn-full" id="btnImpRun" onclick="runImport()"
+                                            disabled style="margin-top:14px;">Import scores</button>
+                                        <div class="upload-result" id="impResult"></div>
+                                    </div><!-- /panelImport -->
                                 </div>
                             </div>
                         </div>
@@ -4766,6 +5011,7 @@
             // Grouping nav + mobile FAB (Super Admin only)
             const isSuper = admin.role === 'Super Admin';
             document.getElementById('navGrouping').style.display = 'flex'; // visible to all admins
+            document.getElementById('cleanupCard').style.display = isSuper ? '' : 'none'; // End of stream cleanup
 
 
 
@@ -6317,7 +6563,7 @@
             document.getElementById('tabScores').classList.toggle('active', tab === 'scores');
             document.getElementById('panelAssessment').classList.toggle('show', tab === 'assessment');
             document.getElementById('panelScores').classList.toggle('show', tab === 'scores');
-            if (tab === 'assessment') loadAssessInfo();
+            if (tab === 'assessment') { loadAssessInfo(); loadLibrary(); }
         }
 
         // Load current assessment details from exam script
@@ -6338,6 +6584,7 @@
                 const topic = data.topic || '—';
                 const type = data.assessmentType || 'EXAM';
                 const isOpen = data.open;
+                libOpen = !!isOpen; onLibPick(); // saved-assessment picker: switching needs a closed assessment
                 sub.textContent = type + ' · ' + topic;
                 badge.innerHTML = isOpen
                     ? '<span style="background:var(--green-wash);color:var(--green-deep);font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px;letter-spacing:.04em;">OPEN</span>'
@@ -6427,6 +6674,537 @@
             } catch (e) {
                 result.innerHTML = '<span style="color:var(--red-mid);">Connection error. Try again.</span>';
             }
+        }
+
+        // ============================================================
+        //  FORM LIBRARY — saved assessments (Forms tab), Check Forms,
+        //  import from responses, end of stream cleanup
+        //  Every call goes to the exam script with the token + admin name/password.
+        //  The page only ever gets names — never a Form URL or entry ID.
+        // ============================================================
+        let libForms = [];       // [{label, type, topic, hasResponseTab, scoreType, scoreTopic}]
+        let libState = 'idle';   // idle | loading | ok | error
+        let libOpen = false;     // an open assessment cannot be switched
+        let libMessage = '';
+
+        function examAdminUrl(action, params) {
+            let url = EXAM_SCRIPT_URL + '?action=' + action
+                + '&token=' + encodeURIComponent(SCRIPT_TOKEN)
+                + '&adminName=' + encodeURIComponent(admin.name)
+                + '&password=' + encodeURIComponent(getStoredPass());
+            Object.keys(params || {}).forEach(function (k) { url += '&' + k + '=' + encodeURIComponent(params[k]); });
+            return url + '&cb=' + Date.now();
+        }
+
+        async function examAdminCall(action, params) {
+            const res = await fetch(examAdminUrl(action, params));
+            const data = await res.json();
+            if (data.status !== 'success' && data.message === 'Unknown action.')
+                data.message = 'This needs the updated exam script. Paste the new version and deploy it (Manage deployments → Edit → New version).';
+            return data;
+        }
+
+        function fmtWhen(v) {
+            if (!v) return '—';
+            const d = new Date(v);
+            return isNaN(d) ? '—' : d.toLocaleString('en-GB', { timeZone: 'Africa/Lagos', day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+        }
+
+        function addLibOption(sel, value, text) {
+            const o = document.createElement('option');
+            o.value = value; o.textContent = text; sel.appendChild(o);
+        }
+
+        // ── Saved assessments ────────────────────────────────────────
+        async function loadLibrary() {
+            libState = 'loading';
+            renderLibrary();
+            try {
+                const data = await examAdminCall('list_assessment_forms');
+                if (data.status !== 'success') { libMessage = data.message || 'Couldn’t load saved assessments.'; throw new Error(libMessage); }
+                libForms = data.forms || [];
+                libOpen = !!data.isOpen;
+                libMessage = data.libraryMissing ? 'No Forms tab yet. Run setupFormsTab() in the exam script, then add one row per form.' : '';
+                libState = 'ok';
+            } catch (e) {
+                libForms = [];
+                libState = 'error';
+                if (!libMessage) libMessage = 'Couldn’t load saved assessments.';
+            }
+            renderLibrary();
+            if (document.getElementById('panelImport').classList.contains('show')) renderImportSources();
+        }
+
+        function renderLibrary() {
+            const sel = document.getElementById('libSelect');
+            const prev = sel.value;
+            sel.innerHTML = '';
+            document.getElementById('libError').classList.toggle('show', libState === 'error');
+            document.getElementById('libErrorText').textContent = libState === 'error' ? libMessage : '';
+            if (libState !== 'ok' || !libForms.length) {
+                addLibOption(sel, '', libState === 'loading' ? 'Loading saved assessments…'
+                    : libState === 'error' ? 'Couldn’t load saved assessments' : 'No saved assessments yet');
+                sel.disabled = true;
+            } else {
+                addLibOption(sel, '', 'Choose…');
+                libForms.forEach(function (f) { addLibOption(sel, f.label, f.label); });
+                sel.disabled = false;
+                if (libForms.some(function (f) { return f.label === prev; })) sel.value = prev;
+            }
+            // Nothing to choose from: open the manual form
+            if (libState === 'error' || (libState === 'ok' && !libForms.length)) document.getElementById('setupManual').open = true;
+            onLibPick();
+        }
+
+        function onLibPick() {
+            const box = document.getElementById('libSummary');
+            const btn = document.getElementById('btnLibUse');
+            const f = libForms.find(function (x) { return x.label === document.getElementById('libSelect').value; });
+            let html = '', warn = false;
+            if (f) {
+                html = 'Type: <strong>' + safeHtml(f.type) + '</strong> · Topic: <strong>' + safeHtml(f.topic) + '</strong>'
+                    + (f.scoreType ? '<br>Scores go to: <strong>' + safeHtml(f.scoreType + ' · ' + f.scoreTopic) + '</strong>' : '');
+            } else if (libState === 'ok' && !libForms.length) {
+                html = safeHtml(libMessage || 'No saved assessments yet. Add one row per form to the Forms tab, or use the manual form below.');
+                warn = true;
+            }
+            if (libOpen && libState === 'ok' && libForms.length) {
+                html += (html ? '<br>' : '') + 'An assessment is open. Close it first, then switch.';
+                warn = true;
+            }
+            box.innerHTML = html;
+            box.classList.toggle('show', !!html);
+            box.classList.toggle('warn', warn);
+            if (btn.textContent !== 'Saving…') btn.disabled = !f || libOpen;
+        }
+
+        async function useLibraryForm() {
+            const label = document.getElementById('libSelect').value;
+            const btn = document.getElementById('btnLibUse');
+            const out = document.getElementById('libResult');
+            if (!label) return;
+            btn.disabled = true; btn.textContent = 'Saving…';
+            out.innerHTML = '';
+            try {
+                const data = await examAdminCall('select_assessment_form', { label: label });
+                if (data.status === 'success') {
+                    let html = '<span style="color:var(--green-deep);">✓ ' + safeHtml(data.message) + '</span>';
+                    if (data.notReadyMessage) html += '<span class="warn">' + safeHtml(data.notReadyMessage) + '</span>';
+                    (data.warnings || []).forEach(function (w) { html += '<span class="warn">' + safeHtml(w) + '</span>'; });
+                    out.innerHTML = html;
+                    loadAssessInfo();
+                } else {
+                    if (data.code === 'OPEN') libOpen = true;
+                    out.innerHTML = '<span class="lib-err">' + safeHtml(data.message || 'Save failed.') + '</span>';
+                }
+            } catch (e) {
+                out.innerHTML = '<span class="lib-err">Connection error. Try again.</span>';
+            }
+            btn.textContent = 'Use this assessment';
+            onLibPick();
+        }
+
+        // ── Check Forms (read-only) ──────────────────────────────────
+        async function checkForms() {
+            const box = document.getElementById('formsCheckResult');
+            const btn = document.getElementById('btnCheckForms');
+            btn.disabled = true;
+            box.className = 'plan-result show';
+            box.textContent = 'Checking the Forms tab…';
+            try {
+                const data = await examAdminCall('check_forms');
+                if (data.status !== 'success') {
+                    box.className = 'plan-result show bad';
+                    box.textContent = data.message || 'Check failed.';
+                } else {
+                    const problems = data.problems || [], warnings = data.warnings || [];
+                    let html = data.ok ? '✓ Forms OK (' + data.activeCount + ' active)'
+                        : '✗ ' + problems.length + ' problem' + (problems.length === 1 ? '' : 's') + ' to fix.';
+                    if (problems.length) html += '<span class="lib-err">\nProblems:\n• ' + problems.map(safeHtml).join('\n• ') + '</span>';
+                    if (warnings.length) html += '<span class="lib-warn">\nWarnings:\n• ' + warnings.map(safeHtml).join('\n• ') + '</span>';
+                    box.className = 'plan-result show ' + (!data.ok ? 'bad' : warnings.length ? 'warn' : 'ok');
+                    box.innerHTML = html;
+                    loadLibrary(); // the Forms tab may have changed
+                }
+            } catch (e) {
+                box.className = 'plan-result show bad';
+                box.textContent = 'Connection error. Try again.';
+            }
+            btn.disabled = false;
+        }
+
+        // ── Score Upload: Upload CSV | Import from responses ─────────
+        function setScoreMode(mode) {
+            document.getElementById('modeCsv').classList.toggle('active', mode === 'csv');
+            document.getElementById('modeImport').classList.toggle('active', mode === 'import');
+            document.getElementById('panelCsv').classList.toggle('show', mode === 'csv');
+            document.getElementById('panelImport').classList.toggle('show', mode === 'import');
+            if (mode === 'import' && impSourcesState !== 'ok' && impSourcesState !== 'loading') loadImportSources();
+        }
+
+        // Import from a saved assessment's response tab. The preview (exam script) writes nothing;
+        // the rows then go through admin_upload_scores exactly like a CSV upload.
+        const IMPORT_CHUNK_ROWS = 60;   // rows per admin_upload_scores call — keeps each GET URL short
+        let impSourcesState = 'idle';   // idle | loading | ok | error
+        let impCurrentSource = '';
+        let impPreviewData = null;
+        let impBusy = false;
+
+        function impTopicsReady() { return Array.isArray(SCORE_TYPES) && SCORE_TYPES.length > 0; }
+
+        async function loadImportSources() {
+            impSourcesState = 'loading';
+            renderImportSources();
+            try {
+                if (!impTopicsReady()) await fetchTopics();
+                if (libState !== 'ok') await loadLibrary();
+                if (libState !== 'ok') throw new Error(libMessage);
+                impSourcesState = 'ok';
+            } catch (e) {
+                impSourcesState = 'error';
+            }
+            renderImportSources();
+        }
+
+        function renderImportSources() {
+            const sel = document.getElementById('impSource');
+            const prev = sel.value || impCurrentSource;
+            sel.innerHTML = '';
+            document.getElementById('impError').classList.toggle('show', impSourcesState === 'error');
+            if (impSourcesState !== 'ok') {
+                addLibOption(sel, '', impSourcesState === 'error' ? 'Couldn’t load the saved assessments' : 'Loading…');
+                sel.disabled = true;
+                onImpSource();
+                return;
+            }
+            const forms = libForms.filter(function (f) { return f.hasResponseTab; });
+            addLibOption(sel, '', forms.length ? 'Choose…' : 'No saved assessment has a response tab yet');
+            forms.forEach(function (f) { addLibOption(sel, f.label, f.label); });
+            sel.disabled = !forms.length;
+            if (Array.prototype.some.call(sel.options, function (o) { return o.value === prev; })) sel.value = prev;
+            onImpSource();
+        }
+
+        function impTarget() {
+            const label = document.getElementById('impSource').value;
+            const f = libForms.find(function (x) { return x.label === label; });
+            if (!f) return null;
+            const t = (SCORE_TYPES || []).find(function (x) { return x.type === f.scoreType; });
+            const item = t ? (t.items || []).find(function (it) { return it.topic === f.scoreTopic; }) : null;
+            return { type: f.scoreType, topic: f.scoreTopic, max: item ? item.max : undefined, active: !!item };
+        }
+
+        function onImpSource() {
+            const v = document.getElementById('impSource').value;
+            if (v !== impCurrentSource) {
+                impCurrentSource = v;
+                document.getElementById('impConvert').checked = false;
+                impInvalidate();
+                return;
+            }
+            renderImpTarget();
+        }
+
+        function impInvalidate() {
+            impPreviewData = null;
+            document.getElementById('impPreview').innerHTML = '';
+            document.getElementById('impConvertWrap').classList.remove('show');
+            document.getElementById('btnImpPreview').textContent = 'Preview';
+            renderImpTarget();
+            updateImportButton();
+        }
+
+        function renderImpTarget() {
+            const label = document.getElementById('impSource').value;
+            const box = document.getElementById('impTargetFixed');
+            const t = impTarget();
+            let html = '—', warn = false;
+            if (label && !impTopicsReady()) {
+                html = SCORE_TYPES === null ? 'Couldn’t load the Assessment Plan topics. Open Upload CSV and tap Retry.' : 'The Assessment Plan has no active topics.';
+                warn = true;
+            } else if (label && (!t || !t.type || !t.topic)) {
+                html = 'This saved assessment has no Score Type / Score Topic in the Forms tab.';
+                warn = true;
+            } else if (label && !t.active) {
+                html = '“' + safeHtml(t.topic) + '” is not an active ' + safeHtml(t.type) + ' topic in the Assessment Plan. Fix the Forms row or the plan.';
+                warn = true;
+            } else if (label) {
+                html = '<strong>' + safeHtml(t.type) + ' · ' + safeHtml(t.topic) + '</strong> (out of ' + safeHtml(t.max) + ')';
+            }
+            box.innerHTML = html;
+            box.classList.toggle('warn', warn);
+            document.getElementById('btnImpPreview').disabled = !(t && t.active) || impBusy;
+        }
+
+        function impStreamOk(d) {
+            const s = d.activeStream || {};
+            return String(s.className || '') === document.getElementById('selClass').value
+                && String(s.year || '') === document.getElementById('selYear').value
+                && String(s.stream || '') === document.getElementById('selStream').value;
+        }
+
+        async function previewImport() {
+            const label = document.getElementById('impSource').value, t = impTarget();
+            if (!label || !t || !t.active) return;
+            const btn = document.getElementById('btnImpPreview');
+            const box = document.getElementById('impPreview');
+            impBusy = true;
+            btn.disabled = true; btn.textContent = 'Reading responses…';
+            document.getElementById('btnImpRun').disabled = true;
+            document.getElementById('impResult').classList.remove('show');
+            box.innerHTML = '<div class="imp-note">Reading the responses for ' + escHtml(label) + '…</div>';
+            try {
+                const data = await examAdminCall('preview_score_import', {
+                    label: label, targetType: t.type, targetTopic: t.topic, targetMax: t.max,
+                    scale: document.getElementById('impConvert').checked ? '1' : '0'
+                });
+                if (data.status !== 'success') {
+                    impPreviewData = null;
+                    box.innerHTML = '<div class="imp-bad">' + escHtml(data.message || 'Preview failed.') + '</div>';
+                } else {
+                    data.target = t; data.label = label;
+                    impPreviewData = data;
+                    renderImportPreview(data);
+                }
+            } catch (e) {
+                impPreviewData = null;
+                box.innerHTML = '<div class="imp-bad">Connection error. Try again.</div>';
+            }
+            impBusy = false;
+            btn.textContent = 'Preview again';
+            renderImpTarget();
+            updateImportButton();
+        }
+
+        function renderImportPreview(d) {
+            const mc = d.maxCheck || {}, s = d.summary || {}, st = d.activeStream;
+            document.getElementById('impConvertWrap').classList.toggle('show', mc.status === 'mismatch');
+            if (mc.status === 'mismatch')
+                document.getElementById('impConvertText').textContent = 'Convert every score from out of ' + mc.formMax + ' to out of ' + mc.targetMax
+                    + ' (× ' + (Math.round(mc.targetMax / mc.formMax * 1000) / 1000) + ')';
+            let html = '';
+            if (!st) html += '<div class="imp-bad">No active stream in Master Config (Sunday tab), so nothing can be imported.</div>';
+            else if (!impStreamOk(d)) html += '<div class="imp-bad">The active stream is now ' + escHtml(st.className + ' ' + st.year + ' · stream ' + st.stream)
+                + '. Reload the dashboard before importing.</div>';
+            if (mc.blocked) html += '<div class="imp-bad">' + escHtml(mc.message)
+                + (mc.status === 'mismatch' ? ' Tick “Convert” above to convert the scores, or change the Max in the Assessment Plan.' : '') + '</div>';
+            else if (mc.message) html += '<div class="imp-warn">' + escHtml(mc.message) + '</div>';
+            html += '<div class="imp-note"><strong>' + s.students + ' student' + (s.students === 1 ? '' : 's') + '</strong> to import from '
+                + s.responses + ' row' + (s.responses === 1 ? '' : 's') + ' in <strong>' + escHtml(d.source.tab) + '</strong> · '
+                + fmtWhen(s.earliest) + ' – ' + fmtWhen(s.latest)
+                + (s.replaced ? ' · ' + s.replaced + ' earlier response' + (s.replaced === 1 ? '' : 's') + ' replaced by a later one' : '')
+                + (s.skipped ? ' · <span style="color:var(--amber-text);">' + s.skipped + ' not imported (listed below)</span>' : '')
+                + '<br>Stored for <strong>' + escHtml(document.getElementById('selClass').value + ' ' + document.getElementById('selYear').value + ' · stream ' + document.getElementById('selStream').value)
+                + '</strong> as ' + escHtml(d.target.type + ' · ' + d.target.topic) + ' (out of ' + escHtml(d.target.max) + ').</div>';
+            if (d.rows.length) {
+                html += '<div class="rpt-table-wrap imp-scroll"><table class="rpt-table"><thead><tr><th>Reg Number</th><th>Form score</th><th>To import</th><th>Notes</th></tr></thead><tbody>'
+                    + d.rows.map(function (r) {
+                        return '<tr><td class="mono">' + escHtml(r.reg) + '</td><td>' + escHtml(r.score + (r.formMax !== null && r.formMax !== undefined ? ' / ' + r.formMax : ''))
+                            + '</td><td><strong>' + escHtml(r.importScore) + '</strong></td><td>' + escHtml(r.flags.join(' · ')) + '</td></tr>';
+                    }).join('') + '</tbody></table></div>';
+            }
+            if (d.skipped.length) {
+                html += '<div class="imp-note"><strong>Not imported</strong></div><div class="rpt-table-wrap imp-scroll"><table class="rpt-table"><thead><tr><th>Row</th><th>Reg Number</th><th>Score</th><th>Why</th></tr></thead><tbody>'
+                    + d.skipped.map(function (r) {
+                        return '<tr><td>' + escHtml(r.row) + '</td><td class="mono">' + escHtml(r.reg || '—') + '</td><td>' + escHtml(r.score || '—') + '</td><td>' + escHtml(r.reason) + '</td></tr>';
+                    }).join('') + '</tbody></table></div>';
+            }
+            document.getElementById('impPreview').innerHTML = html;
+        }
+
+        function impCanImport() {
+            const d = impPreviewData;
+            return !!d && !impBusy && !d.maxCheck.blocked && d.rows.length > 0 && !!d.activeStream && impStreamOk(d);
+        }
+
+        function updateImportButton() {
+            const btn = document.getElementById('btnImpRun');
+            if (btn.textContent.indexOf('Importing') === 0) return;
+            const n = impPreviewData ? impPreviewData.rows.length : 0;
+            btn.textContent = n ? 'Import ' + n + ' score' + (n === 1 ? '' : 's') : 'Import scores';
+            btn.disabled = !impCanImport();
+        }
+
+        async function runImport() {
+            const d = impPreviewData;
+            if (!impCanImport()) return;
+            const t = d.target, btn = document.getElementById('btnImpRun'), out = document.getElementById('impResult');
+            const chunks = [];
+            for (let i = 0; i < d.rows.length; i += IMPORT_CHUNK_ROWS) chunks.push(d.rows.slice(i, i + IMPORT_CHUNK_ROWS));
+            const total = { written: 0, skipped: 0, rejected: [], warnings: [] };
+            let failed = '';
+            impBusy = true;
+            btn.disabled = true;
+            out.classList.remove('show', 'warn');
+            for (let c = 0; c < chunks.length; c++) {
+                btn.textContent = 'Importing… ' + (c + 1) + ' of ' + chunks.length;
+                // The same request the CSV upload sends; names are not needed (the upload keys on reg + score)
+                const csv = ['Reg Number,Last Name,First Name,Score'].concat(chunks[c].map(function (r) { return r.reg + ',,,' + r.importScore; })).join('\n');
+                try {
+                    const url = UNIFIED_SCRIPT_URL
+                        + '?action=admin_upload_scores'
+                        + '&token=' + encodeURIComponent(SCRIPT_TOKEN)
+                        + '&adminName=' + encodeURIComponent(admin.name)
+                        + '&password=' + encodeURIComponent(getStoredPass())
+                        + '&class=' + encodeURIComponent(document.getElementById('selClass').value)
+                        + '&year=' + encodeURIComponent(document.getElementById('selYear').value)
+                        + '&stream=' + encodeURIComponent(document.getElementById('selStream').value)
+                        + '&assessmentType=' + encodeURIComponent(t.type)
+                        + '&topic=' + encodeURIComponent(t.topic)
+                        + '&csvData=' + encodeURIComponent(csv);
+                    const res = await fetch(url);
+                    const data = await res.json();
+                    if (data.status !== 'success') { failed = data.message || 'Upload refused'; break; }
+                    total.written += data.written || 0;
+                    total.skipped += data.skipped || 0;
+                    total.rejected = total.rejected.concat(data.rejected || []);
+                    (data.warnings || []).forEach(function (w) { if (total.warnings.indexOf(w) === -1) total.warnings.push(w); });
+                } catch (e) { failed = 'Connection error'; break; }
+            }
+            let msg;
+            if (failed) {
+                msg = '✗ Stopped: ' + failed + '\n' + total.written + ' score(s) were written before it stopped. Press Import again — it is safe: scores are updated, never duplicated.';
+                out.classList.add('warn');
+                showToast('Import stopped', 'err');
+            } else {
+                let recorded = false;
+                try {
+                    recorded = (await examAdminCall('record_score_import', {
+                        label: d.label, targetType: t.type, targetTopic: t.topic, written: total.written, skipped: total.skipped,
+                        rejected: total.rejected.length, converted: d.maxCheck.scaled ? d.maxCheck.formMax + ' → ' + d.maxCheck.targetMax : ''
+                    })).status === 'success';
+                } catch (e) { /* reported below */ }
+                msg = '✓ ' + total.written + ' score(s) imported for ' + t.topic + ' (out of ' + t.max + ')';
+                if (total.skipped > 0) msg += ' · ' + total.skipped + ' row(s) skipped';
+                if (d.skipped.length) msg += ' · ' + d.skipped.length + ' response(s) not imported (listed above)';
+                if (total.rejected.length) {
+                    msg += '\n\nNot uploaded:\n' + total.rejected.map(function (x) {
+                        return (x.reg || 'Row ' + x.row) + ': ' + (x.score !== '' && x.score !== undefined ? x.score + ' — ' : '') + x.reason;
+                    }).join('\n');
+                }
+                if (total.warnings.length) msg += '\n\n⚠ ' + total.warnings.join('\n⚠ ');
+                if (!recorded) msg += '\n⚠ The scores were imported, but the import could not be recorded in the Activity Log, so the cleanup will show this tab as not imported.';
+                out.classList.toggle('warn', total.skipped > 0 || total.warnings.length > 0 || !recorded);
+                showToast(total.written + ' score(s) imported', total.rejected.length ? 'warn' : 'ok');
+            }
+            out.textContent = msg;
+            out.classList.add('show');
+            impBusy = false;
+            btn.textContent = 'Import scores';
+            updateImportButton();
+        }
+
+        // ── End of stream cleanup (Super Admin) ──────────────────────
+        let cleanupData = null;
+
+        async function cleanupDryRun() {
+            const btn = document.getElementById('btnCleanupCheck');
+            const box = document.getElementById('cleanupPlan');
+            document.getElementById('cleanupStep2').style.display = 'none';
+            document.getElementById('cleanupResult').innerHTML = '';
+            document.getElementById('cleanupConfirm').value = '';
+            cleanupData = null;
+            btn.disabled = true;
+            box.innerHTML = '<div class="imp-note">Checking…</div>';
+            try {
+                const d = await examAdminCall('clear_form_responses', { dryRun: '1' });
+                if (d.status !== 'success') {
+                    box.innerHTML = '<div class="imp-bad">' + escHtml(d.message || 'Check failed.') + '</div>';
+                } else {
+                    cleanupData = d;
+                    renderCleanupPlan(d);
+                    document.getElementById('cleanupStep2').style.display = '';
+                }
+            } catch (e) {
+                box.innerHTML = '<div class="imp-bad">Connection error. Try again.</div>';
+            }
+            btn.disabled = false;
+            updateCleanupButton();
+        }
+
+        function cleanupImported(li) {
+            if (!li) return 'never';
+            return fmtWhen(li.at) + (li.thisStream ? '' : ' (an earlier stream)');
+        }
+
+        function renderCleanupPlan(d) {
+            const s = d.activeStream;
+            let html = '<div class="lib-summary show" style="margin-top:12px;">Active stream: <strong>'
+                + (s ? escHtml(s.className + ' ' + s.year + ' · stream ' + s.stream) : 'none') + '</strong></div>';
+            if (d.notReadyMessage) html += '<div class="imp-warn">' + escHtml(d.notReadyMessage) + ' The cleanup does not reset codes.</div>';
+            html += '<div class="cleanup-tab-list"><h4>Form response tabs — rows emptied; the tab, header row and form link stay</h4>';
+            if (!d.formTabs.length) {
+                html += '<div class="imp-note">' + (d.libraryMissing ? 'No Forms tab yet.' : 'No response tabs are named in the Forms tab.') + '</div>';
+            } else {
+                html += '<div class="rpt-table-wrap"><table class="rpt-table"><thead><tr><th></th><th>Tab</th><th>Used by</th><th>Rows</th><th>Responses</th><th>Last imported</th></tr></thead><tbody>'
+                    + d.formTabs.map(function (t) {
+                        const can = t.exists && !t.protected;
+                        const imported = !!(t.lastImported && t.lastImported.thisStream);
+                        const why = !t.exists ? 'tab not found' : t.protected ? 'system tab — never cleared' : (t.rows > 0 && !imported ? 'not imported this stream' : '');
+                        return '<tr' + (can ? '' : ' class="blocked"') + '><td><input type="checkbox" data-tab="' + safeHtml(t.tab) + '"'
+                            + (can && (t.rows === 0 || imported) ? ' checked' : '') + (can ? '' : ' disabled') + '></td>'
+                            + '<td>' + escHtml(t.tab) + (why ? '<span class="why">' + escHtml(why) + '</span>' : '') + '</td>'
+                            + '<td>' + escHtml(t.labels.join(', ')) + '</td><td>' + t.rows + '</td>'
+                            + '<td>' + (t.rows ? fmtWhen(t.earliest) + ' – ' + fmtWhen(t.latest) : '—') + '</td>'
+                            + '<td>' + escHtml(cleanupImported(t.lastImported)) + '</td></tr>';
+                    }).join('') + '</tbody></table></div>';
+            }
+            html += '</div>';
+            const box = document.getElementById('cleanupPlan');
+            box.innerHTML = html;
+            box.querySelectorAll('input[data-tab]').forEach(function (cb) { cb.addEventListener('change', updateCleanupButton); });
+        }
+
+        function cleanupTicked() {
+            return Array.prototype.map.call(document.querySelectorAll('#cleanupPlan input[data-tab]:checked'), function (cb) { return cb.dataset.tab; });
+        }
+
+        function updateCleanupButton() {
+            const btn = document.getElementById('btnCleanupRun');
+            if (btn.textContent === 'Cleaning up…') return;
+            const n = cleanupTicked().length;
+            btn.textContent = 'Clear ' + n + ' form tab' + (n === 1 ? '' : 's');
+            btn.disabled = !(cleanupData && n && document.getElementById('cleanupConfirm').value.trim() === 'CLEAR');
+        }
+
+        function openCleanupConfirm() {
+            const n = cleanupTicked().length;
+            document.getElementById('cleanupOverlayDesc').innerHTML = 'This empties <strong>' + n + ' form response tab' + (n === 1 ? '' : 's')
+                + '</strong>. The header row, the tab and the form link stay, and each form keeps its own copy of the responses. Codes are not reset.';
+            document.getElementById('cleanupOverlay').classList.add('show');
+        }
+
+        function closeCleanupConfirm() {
+            document.getElementById('cleanupOverlay').classList.remove('show');
+        }
+
+        async function runCleanup() {
+            const btn = document.getElementById('btnCleanupRun');
+            const out = document.getElementById('cleanupResult');
+            const params = { confirm: document.getElementById('cleanupConfirm').value.trim(), formTabs: JSON.stringify(cleanupTicked()) };
+            btn.disabled = true; btn.textContent = 'Cleaning up…';
+            out.innerHTML = '';
+            try {
+                const d = await examAdminCall('clear_form_responses', params);
+                if (d.status !== 'success') {
+                    out.innerHTML = '<div class="imp-bad">' + escHtml(d.message || 'Cleanup failed.') + '</div>';
+                } else {
+                    const allDone = d.formTabs.every(function (r) { return r.done; });
+                    out.innerHTML = '<div class="plan-result show ' + (allDone ? 'ok' : 'warn') + '">' + escHtml(d.message) + '\n'
+                        + d.formTabs.map(function (r) {
+                            return (r.done ? '✓ ' : '✗ ') + escHtml(r.tab) + ' — ' + escHtml(r.done ? r.rows + ' row(s) cleared' : r.reason);
+                        }).join('\n') + '</div>';
+                    cleanupData = null;
+                    document.getElementById('cleanupPlan').innerHTML = '';
+                    document.getElementById('cleanupStep2').style.display = 'none';
+                    document.getElementById('cleanupConfirm').value = '';
+                    showToast('Cleanup done', 'ok');
+                }
+            } catch (e) {
+                out.innerHTML = '<div class="imp-bad">Connection error. Check the tabs before trying again.</div>';
+            }
+            btn.textContent = 'Clear the ticked tabs';
+            updateCleanupButton();
         }
 
         function copySunCode() {
@@ -6965,6 +7743,28 @@
                     </svg>
                     Yes, Reset All
                 </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- End of Stream Cleanup Overlay -->
+    <div class="qaqc-overlay" id="cleanupOverlay">
+        <div class="qaqc-modal">
+            <div class="qaqc-icon" style="background:var(--rose-soft);">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#B5402F" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="3 6 5 6 21 6" />
+                    <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                    <path d="M10 11v6" />
+                    <path d="M14 11v6" />
+                </svg>
+            </div>
+            <div class="qaqc-title">End of Stream Cleanup</div>
+            <div class="qaqc-desc" id="cleanupOverlayDesc"></div>
+            <div class="qaqc-actions">
+                <button class="btn btn-outline btn-sm" onclick="closeCleanupConfirm()">Cancel</button>
+                <button class="btn btn-danger btn-sm" id="btnCleanupYes"
+                    onclick="closeCleanupConfirm(); runCleanup();">Yes, clean up</button>
             </div>
         </div>
     </div>
