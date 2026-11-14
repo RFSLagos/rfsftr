@@ -98,6 +98,7 @@
         .ap-input::placeholder { color: var(--muted); font-size: 15px; letter-spacing: 0; text-transform: none; }
         .ap-input:focus { border-color: var(--accent); background: #fff; box-shadow: 0 0 0 3px var(--accent-soft); }
         .ap-input.invalid { border-color: var(--red); box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1); }
+        .ap-input.pw { text-transform: none; letter-spacing: 0.02em; }
         .ap-btn {
             width: 100%; height: 50px; border-radius: 8px; background: var(--accent); color: #fff;
             font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -317,6 +318,13 @@
                 <span class="ap-hint">Format: RFS/2601/053</span>
                 <span class="ap-err" id="regErr" hidden></span>
             </div>
+            <div class="ap-field">
+                <label for="pwInput">Password</label>
+                <input class="ap-input pw" id="pwInput" name="password" type="password" autocomplete="off"
+                       autocapitalize="off" spellcheck="false" placeholder="Your surname" maxlength="60">
+                <span class="ap-hint">Your surname — not case-sensitive</span>
+                <span class="ap-err" id="pwErr" hidden></span>
+            </div>
             <button class="ap-btn" id="signInBtn" type="submit"></button>
             <div class="ap-status" id="loginError" role="alert" hidden></div>
         </form>
@@ -476,14 +484,16 @@ document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = fi(el.da
 document.querySelectorAll('[data-logo]').forEach(el => { el.innerHTML = LOGO; });
 
 // ── Session (sessionStorage only; every access guarded) ──────
+// The password (the surname) is kept with the reg so Refresh can ask again; a session saved
+// by the older reg-only page has no pw and counts as no session.
 function readSession() {
-    try { const v = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return v && v.reg && v.data ? v : null; }
+    try { const v = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return v && v.reg && v.pw && v.data ? v : null; }
     catch (e) { return null; }
 }
-function writeSession(reg, data, tab) {
+function writeSession(reg, pw, data, tab) {
     try {
         const old = readSession();
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ reg: reg, data: data, savedAt: Date.now(), tab: tab || (old && old.reg === reg && old.tab) || 'home' }));
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ reg: reg, pw: pw, data: data, savedAt: Date.now(), tab: tab || (old && old.reg === reg && old.tab) || 'home' }));
     } catch (e) {}
 }
 function saveTab(tab) {
@@ -499,13 +509,15 @@ function normaliseReg(raw) {
 }
 
 // ── Network ──────────────────────────────────────────────────
-async function fetchStatus(reg) {
+async function fetchStatus(reg, pw) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
     try {
-        const res = await fetch(STUDENT_SCRIPT_URL + '?action=get_student_status&reg=' + encodeURIComponent(reg), { signal: ctrl.signal });
+        const res = await fetch(STUDENT_SCRIPT_URL + '?action=get_student_status&reg=' + encodeURIComponent(reg) +
+            '&password=' + encodeURIComponent(pw || ''), { signal: ctrl.signal });
         const data = await res.json();
-        if (!data || data.status !== 'success') return { ok: false, message: (data && data.message) || 'Something went wrong. Please try again.' };
+        if (!data || data.status !== 'success') return { ok: false, password: !!(data && data.code === 'PASSWORD'),
+            message: (data && data.message) || 'Something went wrong. Please try again.' };
         return { ok: true, data: data };
     } catch (err) {
         return { ok: false, network: true, message: err && err.name === 'AbortError'
@@ -524,9 +536,16 @@ function showLogin(message) {
     err.textContent = message || '';
     err.hidden = !message;
     setRegError('');
+    setPwError('');
     setBusy(false);
     loadStreamTag();
 }
+function setPwError(message) {
+    $('pwErr').textContent = message || '';
+    $('pwErr').hidden = !message;
+    $('pwInput').classList.toggle('invalid', !!message);
+}
+$('pwInput').addEventListener('input', () => setPwError(''));
 function setBusy(busy) {
     const b = $('signInBtn');
     b.disabled = busy;
@@ -569,13 +588,18 @@ $('loginForm').addEventListener('submit', async e => {
     $('loginError').hidden = true;
     if (!/^RFS\/\d{4}\/\d{3}$/.test(reg)) { setRegError('Enter your registration number like RFS/2601/053.'); $('regInput').focus(); return; }
     setRegError('');
+    const pw = $('pwInput').value;
+    if (!pw.replace(/[\s\-‐-—]/g, '')) { setPwError('Enter your password — it is your surname.'); $('pwInput').focus(); return; }
+    setPwError('');
     setBusy(true);
-    const r = await fetchStatus(reg);
+    const r = await fetchStatus(reg, pw);
     setBusy(false);
+    if (!r.ok && r.password) { setPwError(r.message); $('pwInput').focus(); return; }
     if (!r.ok) { showLogin(r.message); return; }
-    $('regInput').blur();
+    $('regInput').blur(); $('pwInput').blur();
+    $('pwInput').value = '';
     CAL.month = ''; CAL.sel = '';
-    writeSession(reg, r.data, 'home');
+    writeSession(reg, pw, r.data, 'home');
     renderAll(r.data, Date.now());
     setTab('home');
 });
@@ -583,6 +607,7 @@ $('loginForm').addEventListener('submit', async e => {
 $('logoutBtn').addEventListener('click', () => {
     clearSession();
     $('regInput').value = '';
+    $('pwInput').value = '';
     showLogin('');
 });
 
@@ -593,9 +618,11 @@ async function refresh(quiet) {
     if (!s) { showLogin(''); return; }
     const btn = $('refreshBtn');
     btn.disabled = true; btn.classList.add('busy');
-    const r = await fetchStatus(s.reg);
+    const r = await fetchStatus(s.reg, s.pw);
     btn.disabled = false; btn.classList.remove('busy');
-    if (r.ok) { writeSession(s.reg, r.data); renderAll(r.data, Date.now()); return; }
+    if (r.ok) { writeSession(s.reg, s.pw, r.data); renderAll(r.data, Date.now()); return; }
+    // Surname no longer matches (e.g. corrected by an admin): sign in again
+    if (r.password) { clearSession(); $('regInput').value = s.reg; $('pwInput').value = ''; showLogin(''); setPwError(r.message); return; }
     const note = $('updatedNote');
     note.className = 'note warn';
     note.textContent = (quiet ? 'Showing saved details. ' : '') + r.message;
