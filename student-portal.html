@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>RFS Student Portal</title>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -32,99 +32,158 @@
             --serif: 'Amiri', Georgia, serif;
             --sans: 'Catamaran', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
-            /* Stat card tints (after the screenshot's pastel cards) */
+            /* Admin dashboard values (admin.html) — login, top bar, bottom nav */
+            --adm-bg: #F4F6F1;
+            --adm-line: #E7E9E1;
+            --adm-ink-2: #3E4A40;
+            --adm-ink-3: #7A847B;
+            --adm-green-deep: #143E20;
+            --adm-top: #0E1A14;
+            --top-h: 58px;
+            --nav-h: 62px;
+
+            /* Stat card tints */
             --peach-bg: #fdf0e8; --peach-line: #f2cdb6; --peach-ink: #d9804e;
             --lilac-bg: #f0eefc; --lilac-line: #cfc8f2; --lilac-ink: #6d5fd0;
             --sky-bg:   #ebf3fc; --sky-line:   #b4cdea; --sky-ink:   #2f6db3;
             --leaf-bg:  #edf6e8; --leaf-line:  #bfdcae; --leaf-ink:  #4e7a2e;
         }
 
-        html { -webkit-text-size-adjust: 100%; }
+        /* ── Stable page (admin.html pattern): the body never scrolls or bounces; only .main
+              (or the login overlay, when the keyboard makes it taller than the screen) scrolls ── */
+        html, body { height: 100%; overscroll-behavior: none; -webkit-text-size-adjust: 100%; }
         body {
-            font-family: var(--sans);
-            background: var(--bg);
-            color: var(--ink);
-            min-height: 100vh;
-            line-height: 1.4;
+            position: fixed; inset: 0; width: 100%; overflow: hidden; touch-action: pan-x pan-y;
+            font-family: var(--sans); background: var(--bg); color: var(--ink); line-height: 1.4;
+            -webkit-font-smoothing: antialiased;
         }
-        .wrap { max-width: 480px; margin: 0 auto; padding: 24px 16px 40px; }
         [hidden] { display: none !important; }
-        button { font-family: inherit; cursor: pointer; }
+        button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+        .fi { width: 20px; height: 20px; flex-shrink: 0; }
 
-        /* ── Login — logo + layout of the Assessment Portal login (assessment.html); page fonts kept ── */
-        body.on-login { background: #1a2a1a; }
-        body.on-login::before {
-            content: ''; position: fixed; inset: 0;
-            background-image: url('hotr-bg.jpg');
-            background-size: cover; background-position: center 30%;
-            filter: blur(3px) brightness(0.32) saturate(0.6);
-            transform: scale(1.05); z-index: 0;
+        /* ══ LOGIN — admin.html login structure (split panel; stacked on phones) ══ */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 200;
+            display: grid; grid-template-columns: 1fr 1fr;
+            background: var(--adm-bg);
+            overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch;
         }
-        body.on-login::after {
-            content: ''; position: fixed; inset: 0;
-            background: radial-gradient(ellipse at center, transparent 20%, rgba(5,15,5,0.65) 100%);
-            z-index: 0;
+        .login-brand {
+            color: #fff; padding: 56px 56px 40px;
+            display: flex; flex-direction: column; justify-content: space-between; gap: 28px;
+            position: relative; overflow: hidden;
         }
-        #login {
-            position: relative; z-index: 1;
-            min-height: calc(100vh - 64px); display: flex; flex-direction: column; justify-content: center; align-items: center;
-            font-family: var(--sans); color: #1A2010;
+        .login-brand::before {
+            content: ''; position: absolute; inset: 0;
+            background-image: url('hotr-bg.jpg'); background-size: cover; background-position: center 30%; background-repeat: no-repeat;
+            filter: blur(2px) brightness(0.65) saturate(0.9); transform: scale(1.05); z-index: 0;
         }
-        .ap-card {
-            background: #fff; border-radius: 22px; width: 100%; max-width: 460px; overflow: hidden;
-            box-shadow: 0 8px 48px rgba(0,0,0,0.45), 0 2px 12px rgba(0,0,0,0.25);
-            animation: ap-rise 0.4s cubic-bezier(.22,.68,0,1.2) both;
+        .login-brand::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+            background:
+                linear-gradient(160deg, rgba(14, 26, 20, 0.75) 0%, rgba(31, 90, 46, 0.60) 50%, rgba(14, 26, 20, 0.85) 100%),
+                radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.04) 1px, transparent 0);
+            background-size: auto, 18px 18px;
         }
-        @keyframes ap-rise {
-            from { opacity: 0; transform: translateY(20px) scale(0.97); }
-            to   { opacity: 1; transform: none; }
+        .login-brand-top { display: flex; align-items: center; gap: 12px; position: relative; z-index: 2; }
+        .login-brand-mark {
+            width: 44px; height: 44px; border-radius: 10px; background: #fff; flex-shrink: 0;
+            display: grid; place-items: center; box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25); overflow: hidden; padding: 4px;
         }
-        .ap-header { padding: 24px 28px 18px; border-bottom: 1px solid rgba(0,0,0,0.09); }
-        .ap-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-        .ap-brand svg { flex-shrink: 0; }
-        .ap-brand-text { display: flex; flex-direction: column; gap: 2px; }
-        .ap-brand-name   { font-size: 11px; font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; color: #26361b; }
-        .ap-brand-school { font-size: 10px; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: #7ac042; }
-        .ap-divider { width: 1px; height: 30px; background: rgba(0,0,0,0.12); flex-shrink: 0; }
-        .ap-title { font-size: 22px; font-weight: 800; color: #1A2010; line-height: 1.2; }
-        .ap-meta  { display: flex; align-items: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
-        .ap-tag   { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 99px; background: #F3F5F0; color: #4A5540; }
-        .ap-tag.gold { background: rgba(200,150,12,0.12); color: #C8960C; }
-        .ap-body { padding: 24px 28px 28px; }
-        .ap-field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px; }
-        .ap-field label { font-size: 12px; font-weight: 600; color: #4A5540; text-transform: uppercase; letter-spacing: 0.05em; }
-        .ap-field .ap-hint { font-size: 11px; color: #8A9A80; margin-top: 3px; }
-        .ap-field .ap-err { font-size: 11px; color: #C0392B; }
-        .ap-input {
-            width: 100%; height: 46px; padding: 0 14px;
-            background: #F3F5F0; border: 1.5px solid rgba(0,0,0,0.09); border-radius: 8px;
-            font-family: var(--sans); font-size: 18px; font-weight: 600;
-            color: #1A2010; letter-spacing: 0.05em; text-transform: uppercase;
-            outline: none; transition: border-color 0.15s, box-shadow 0.15s; -webkit-appearance: none;
+        .login-brand-mark svg { width: 32px; height: 32px; }
+        .login-brand-name { font-size: 15px; font-weight: 700; letter-spacing: -0.01em; }
+        .login-brand-headline { position: relative; z-index: 2; }
+        .login-brand-headline h1 { font-size: 38px; font-weight: 700; line-height: 1.08; letter-spacing: -0.02em; margin-bottom: 14px; max-width: 14ch; }
+        .login-brand-headline p { font-size: 15px; color: rgba(255, 255, 255, 0.72); line-height: 1.5; max-width: 38ch; }
+        .login-brand-foot { font-size: 11px; font-weight: 600; color: rgba(255, 255, 255, 0.4); letter-spacing: 0.08em; position: relative; z-index: 2; }
+
+        .login-form-side { display: flex; align-items: center; justify-content: center; padding: 40px; }
+        .login-form { width: 100%; max-width: 360px; }
+        .login-form-eyebrow { font-size: 12px; font-weight: 700; color: var(--adm-ink-3); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+        .login-form-title { font-size: 28px; font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; margin-bottom: 6px; color: var(--ink); }
+        .login-form-sub { font-size: 15px; color: var(--adm-ink-3); margin-bottom: 28px; }
+        .f-group { display: flex; flex-direction: column; gap: 7px; margin-bottom: 18px; }
+        .f-group label { font-size: 12px; font-weight: 700; color: var(--adm-ink-2); text-transform: uppercase; letter-spacing: 0.07em; }
+        .f-input {
+            width: 100%; height: 48px; padding: 0 14px;
+            border: 1.5px solid var(--adm-line); border-radius: 8px; background: #fff; outline: none;
+            font-family: var(--sans); font-size: 17px; font-weight: 600; letter-spacing: 0.04em; color: var(--ink);
+            text-transform: uppercase; transition: border-color .12s, box-shadow .12s; -webkit-appearance: none;
         }
-        .ap-input::placeholder { color: #8A9A80; font-size: 14px; letter-spacing: 0; text-transform: none; }
-        .ap-input:focus { border-color: #2D6A2D; background: #fff; box-shadow: 0 0 0 3px rgba(45,106,45,0.12); }
-        .ap-input.invalid { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(192,57,43,0.1); }
-        .ap-btn {
-            width: 100%; height: 50px; border: none; border-radius: 8px;
-            background: #2D6A2D; color: #fff;
-            font-family: var(--sans); font-size: 16px; font-weight: 700;
-            display: flex; align-items: center; justify-content: center; gap: 8px;
-            transition: opacity 0.15s, transform 0.1s;
+        .f-input::placeholder { color: #a5ada6; font-weight: 500; text-transform: none; }
+        .f-input:focus { border-color: #1F5A2E; box-shadow: 0 0 0 3px rgba(31, 90, 46, 0.10); }
+        .f-input.invalid { border-color: #C0392B; box-shadow: 0 0 0 3px rgba(192, 57, 43, 0.1); }
+        .f-hint { font-size: 12.5px; color: var(--adm-ink-3); }
+        .f-err { font-size: 12.5px; color: #B5402F; font-weight: 600; }
+        .btn-primary {
+            width: 100%; height: 48px; border-radius: 8px; background: var(--adm-green-deep); color: #fff;
+            font-size: 16px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px;
+            transition: background .12s, opacity .12s, transform .04s;
         }
-        .ap-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        .ap-btn:enabled:hover  { opacity: 0.88; }
-        .ap-btn:enabled:active { transform: scale(0.98); }
-        .spinner {
-            width: 16px; height: 16px; border-radius: 50%;
-            border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; animation: spin .8s linear infinite;
-        }
+        .btn-primary:hover:not(:disabled) { background: #0E2C18; }
+        .btn-primary:active { transform: translateY(1px); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+        .btn-primary .fi { width: 18px; height: 18px; }
+        .spinner { width: 16px; height: 16px; border-radius: 50%; border: 2.5px solid rgba(255,255,255,.35); border-top-color: #fff; animation: spin .8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .ap-status {
-            margin-top: 14px; padding: 13px 16px; border-radius: 8px;
-            font-size: 13px; font-weight: 500; text-align: center; line-height: 1.5;
-            background: #FEF0F0; color: #C0392B;
+        .login-err { margin-top: 14px; padding: 11px 13px; background: #FBEAE6; color: #8E2A1C; font-size: 14px; font-weight: 500; border-radius: 8px; }
+        .login-help { margin-top: 18px; font-size: 13px; color: var(--adm-ink-3); }
+
+        @media (max-width: 720px) {
+            .login-overlay { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+            .login-brand { padding: 30px 24px 26px; min-height: 220px; }
+            .login-brand-headline h1 { font-size: 26px; margin-bottom: 8px; }
+            .login-brand-headline p { font-size: 14px; }
+            .login-form-side { align-items: flex-start; padding: 28px 24px 32px; }
+            .login-form-sub { margin-bottom: 22px; }
         }
+
+        /* ══ APP SHELL — top bar · scrolling main · bottom nav (admin mobile view) ══ */
+        .app { position: fixed; inset: 0; display: flex; flex-direction: column; height: 100%; height: 100dvh; background: var(--bg); }
+        .topbar { height: var(--top-h); flex-shrink: 0; background: var(--adm-top); border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .tb-in { max-width: 480px; height: 100%; margin: 0 auto; padding: 0 14px; display: flex; align-items: center; gap: 10px; }
+        .tb-mark { width: 30px; height: 30px; border-radius: 7px; background: #fff; display: grid; place-items: center; flex-shrink: 0; }
+        .tb-mark svg { width: 20px; height: 20px; }
+        .tb-name { color: #fff; font-weight: 700; font-size: 14.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; flex: 1; min-width: 0; }
+        .tb-icon-btn {
+            width: 32px; height: 32px; border-radius: 8px; display: grid; place-items: center; flex-shrink: 0;
+            color: rgba(255,255,255,0.75); border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.05);
+        }
+        .tb-icon-btn .fi { width: 16px; height: 16px; }
+        .tb-icon-btn.busy .fi { animation: spin .9s linear infinite; }
+        .tb-logout {
+            height: 30px; padding: 0 10px; border-radius: 8px; display: flex; align-items: center; gap: 6px; flex-shrink: 0;
+            background: rgba(181, 64, 47, 0.15); border: 1px solid rgba(181, 64, 47, 0.30); color: #FF8A7A;
+            font-size: 12.5px; font-weight: 700;
+        }
+        .tb-logout .fi { width: 14px; height: 14px; }
+        .tb-logout:active { background: rgba(181, 64, 47, 0.28); }
+
+        .main {
+            flex: 1; min-height: 0; overflow-y: auto; overflow-x: hidden;
+            -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain;
+        }
+        .content { max-width: 480px; margin: 0 auto; padding: 18px 16px calc(var(--nav-h) + 28px + env(safe-area-inset-bottom)); }
+
+        .mob-nav {
+            position: fixed; left: 0; right: 0; bottom: 0; z-index: 120;
+            background: #fff; border-top: 1px solid var(--adm-line); box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.07);
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+        .mob-nav-in { max-width: 480px; height: var(--nav-h); margin: 0 auto; display: flex; align-items: stretch; }
+        .mob-nav-item {
+            flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+            color: var(--adm-ink-3); font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase;
+            padding: 0 4px; transition: color .12s; -webkit-tap-highlight-color: transparent;
+        }
+        .mob-nav-item .fi { width: 21px; height: 21px; }
+        .mob-nav-item.active { color: var(--green-dark); }
+        .mob-nav-item:active { opacity: 0.7; }
+
+        /* ── Page heads (Attendance / Tests tabs) ──────────── */
+        .page-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin: 2px 2px 14px; }
+        .page-head h2 { font-size: 24px; font-weight: 800; line-height: 1.15; }
+        .page-head span { font-size: 13px; color: var(--muted); font-weight: 700; white-space: nowrap; }
 
         /* ── Dashboard header ──────────────────────────────── */
         .head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
@@ -169,7 +228,7 @@
             border-radius: var(--radius); border: 1.5px solid; padding: 14px 14px 12px; min-height: 132px;
             display: flex; flex-direction: column;
         }
-        .stat::after {           /* soft swirl, after the screenshot's background shapes */
+        .stat::after {
             content: ''; position: absolute; right: -34px; bottom: -40px; width: 110px; height: 110px;
             border-radius: 50%; border: 18px solid currentColor; opacity: .07; pointer-events: none;
         }
@@ -177,7 +236,7 @@
             width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center;
             background: rgba(255,255,255,.7); margin-bottom: auto;
         }
-        .stat .ico svg { width: 22px; height: 22px; }
+        .stat .ico .fi { width: 21px; height: 21px; }
         .stat .lbl { font-size: 14px; font-weight: 600; color: var(--ink-2); margin-top: 12px; }
         .stat .num { font-family: var(--serif); font-size: 34px; font-weight: 700; line-height: 1.05; color: var(--ink); }
         .stat .num small { font-family: var(--sans); font-size: 15px; font-weight: 700; color: var(--muted); margin-left: 2px; }
@@ -192,10 +251,7 @@
         .months-row { display: flex; align-items: flex-start; }
         .month { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; }
         .month-bar { width: 100%; height: 76px; position: relative; }
-        .month-bar i {
-            position: absolute; left: 0; right: 0; top: 0; min-height: 10px;
-            border-radius: 0 0 16px 16px;
-        }
+        .month-bar i { position: absolute; left: 0; right: 0; top: 0; min-height: 10px; border-radius: 0 0 16px 16px; }
         .month:first-child .month-bar i { border-top-left-radius: 16px; }
         .month:last-child .month-bar i { border-top-right-radius: 16px; }
         .month:only-child .month-bar i { border-radius: 16px; }
@@ -214,27 +270,24 @@
         }
         .next::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 7px; background: var(--green); }
         .next-top { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 14px; font-weight: 600; }
-        .next-top svg { width: 18px; height: 18px; flex: 0 0 18px; color: var(--green-dark); }
-        .next-top .when {
-            margin-left: auto; background: var(--green); color: #fff; border-radius: 6px;
-            padding: 3px 10px; font-size: 13px; font-weight: 800; white-space: nowrap;
-        }
+        .next-top .fi { width: 18px; height: 18px; color: var(--green-dark); }
+        .next-top .when { margin-left: auto; background: var(--green); color: #fff; border-radius: 6px; padding: 3px 10px; font-size: 13px; font-weight: 800; white-space: nowrap; }
         .next h4 { font-size: 21px; font-weight: 800; margin-top: 8px; line-height: 1.2; }
         .next p { color: var(--ink-2); font-size: 15px; margin-top: 4px; }
 
         /* ── Lists ─────────────────────────────────────────── */
         .list { background: var(--card); border: 1.5px solid var(--line); border-radius: var(--radius); overflow: hidden; }
-        .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 58px; }
+        .row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; min-height: 60px; width: 100%; text-align: left; }
         .grp > .row:nth-child(even) { background: #f7f9f7; }
         .grp > .row + .row { border-top: 1px solid #f1f2f1; }
-        .row .main { flex: 1; min-width: 0; }
-        .row .t { font-size: 16px; font-weight: 700; overflow-wrap: anywhere; }
-        .row .s { font-size: 13px; color: var(--muted); font-weight: 600; }
+        .row .rmain { flex: 1; min-width: 0; }
+        .row .t { font-size: 16px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+        .row .s { font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 2px; }
         .group-label { font-size: 12px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; color: var(--muted); padding: 10px 16px 6px; background: #fafbfa; border-bottom: 1px solid #f1f2f1; }
         .grp + .group-label { border-top: 1.5px solid var(--line); }
         .mark { flex: 0 0 auto; display: flex; align-items: center; justify-content: center; }
         .mark .circle { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .mark svg { width: 16px; height: 16px; }
+        .mark .fi { width: 16px; height: 16px; }
         .mark.yes .circle { background: var(--green-tint); color: #2e7d32; }
         .mark.no .circle { background: var(--red-tint); color: var(--red); }
         .mark.dash .circle { background: #f0f1f0; color: #a0a5a0; }
@@ -244,129 +297,163 @@
         .chip.today { background: var(--green-tint); color: var(--green-dark); }
         .empty { padding: 18px 16px; color: var(--muted); font-size: 15px; }
 
-        /* ── Footer actions ────────────────────────────────── */
-        .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 28px; }
-        .btn-ghost {
-            padding: 13px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card);
-            font-size: 16px; font-weight: 700; color: var(--ink); min-height: 50px;
-        }
-        .btn-ghost.danger { color: #b3261e; }
-        .note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 14px; }
+        /* Dashboard shortcut rows → the other tabs */
+        .row.link { cursor: pointer; }
+        .row.link:active { background: #f3f5f3; }
+        .row .sico { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex-shrink: 0; }
+        .row .sico.att { background: var(--peach-bg); color: var(--peach-ink); }
+        .row .sico.tst { background: var(--lilac-bg); color: var(--lilac-ink); }
+        .row .chev { color: #b5bab5; }
+
+        .note { text-align: center; color: var(--muted); font-size: 13px; margin-top: 18px; }
         .note.warn { color: var(--amber-ink); }
     </style>
 </head>
 <body>
-<div class="wrap">
 
-    <!-- ── Login ───────────────────────────────────────────── -->
-    <main id="login" hidden>
-        <div class="ap-card">
-            <div class="ap-header">
-                <div class="ap-brand">
-                    <svg viewBox="0 0 1535.61 720.7" width="56" height="26" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="House on the Rock">
-                <path fill="#7ac042" d="M0,693.1l17.76-27.95,78.77-14.93,39.53-55.38c77.39-18.85,157.19-33.28,236.48-44.4,298.97-41.95,607.51-36.4,904.31,19.14,48.81,9.13,92.27,16.51,137.14,38.78,15.07,7.48,54.7,29.33,64.06,41.87,6.62,8.87,11.26,24.98,17.82,34.63,6.09,3.05,24.83,2.93,29.31,6.17,1.19.86,10.43,20.26,10.44,21.53-8.4,1.77-17.28-.18-25.46-.53-172.91-7.3-345.62-20.92-518.95-15.98-120.92,3.45-242.02,15.47-362.82,21.05-167.22,7.73-335,2.5-501.9-11.03-42.2-3.42-84.32-8.22-126.47-11.98v-1Z"/>
-                <path fill="#26361b" d="M905.76,112.87v160.78c24.25-7.17,48.56-17.58,74.47-15.96,28.01,1.75,53.53,16.33,75.81,32.13,50,35.45,119.73,106.25,181.15,113.65,13.1,1.58,26.08-1.17,36.47,9.51,5.34,5.49,12.01,21.51,12.01,28.95v22.47l-64.98,1v45.94c-35.89-4.17-71.67-10.41-107.6-14.86-242.16-30.01-485.68-27.78-727.54,4.01-19.03,2.5-37.9,6.26-57.05,7.91-2.5-13.93-2.65-28.83-1.58-43h-41.99v-31.46c0-3.13,1.55-12.2,2.48-15.5,2.27-8.01,6.95-12.37,15.27-13.7,101.98-.92,204.14,1.97,304.17-19.72,86.33-18.72,163.38-55.83,243.75-90.56.54-17.23-.14-34.53.17-51.77.1-5.48-.09-10.99,0-16.48,15.76-35.82,32.94-71.42,50.13-106.71.93-1.91,1.92-4.24,3-5.99.46-.74,1.51-2.57,1.85-.64Z"/>
-                <path fill="#f6eb19" d="M850.78,242.7c-75.13,29.86-146.12,67.66-224.73,88.6-38.12,10.16-77.21,16.63-116.54,20.16l-1.47-1.58c-9.55-57.54-3.35-116.46,19.35-170.07C583.95,46.3,728.79-28.69,870.99,10.3c109.33,29.97,193.87,126.56,210.72,238.39-1.54.38-2.17-.63-3.28-1.2-7.95-4.12-16.61-11.38-25.03-15.94-30.39-16.47-65.95-25.9-100.59-19.82l-47.04-98.85c-.35-1.93-1.4-.09-1.85.64-1.08,1.75-2.07,4.08-3,5.99-17.19,35.29-34.37,70.89-50.13,106.71-.09,5.49.1,11,0,16.48Z"/>
-            </svg>
-                    <div class="ap-divider"></div>
-                    <div class="ap-brand-text">
-                        <span class="ap-brand-name">House on the Rock Lagos</span>
-                        <span class="ap-brand-school">Rock Foundation School</span>
+<!-- ══ LOGIN (admin.html login structure; reg number only) ══ -->
+<div class="login-overlay" id="login" hidden>
+    <aside class="login-brand">
+        <div class="login-brand-top">
+            <div class="login-brand-mark" data-logo></div>
+            <div class="login-brand-name">Rock Foundation School, Lagos</div>
+        </div>
+        <div class="login-brand-headline">
+            <h1>Your FTR progress, in one place.</h1>
+            <p>See your attendance, eligibility and test status for the current stream — updated as soon as it is recorded.</p>
+        </div>
+        <div class="login-brand-foot">RFS SUITE · STUDENT PORTAL · HOTR LAGOS</div>
+    </aside>
+    <div class="login-form-side">
+        <form class="login-form" id="loginForm" novalidate>
+            <div class="login-form-eyebrow" id="loginEyebrow">Student Access<span id="streamTag" hidden></span></div>
+            <div class="login-form-title">Welcome back.</div>
+            <div class="login-form-sub">Sign in with your registration number to see your status.</div>
+            <div class="f-group">
+                <label for="regInput">Registration Number</label>
+                <input class="f-input" id="regInput" name="reg" type="text" inputmode="text" autocomplete="off"
+                       autocapitalize="characters" spellcheck="false" placeholder="RFS/2601/053" maxlength="14">
+                <span class="f-hint">Format: RFS/2601/053</span>
+                <span class="f-err" id="regErr" hidden></span>
+            </div>
+            <button class="btn-primary" id="signInBtn" type="submit"></button>
+            <div class="login-err" id="loginError" role="alert" hidden></div>
+            <p class="login-help">Can't find your number? Ask your group admin.</p>
+        </form>
+    </div>
+</div>
+
+<!-- ══ APP: top bar · tabs · bottom nav ══ -->
+<div class="app" id="dash" hidden>
+    <header class="topbar">
+        <div class="tb-in">
+            <div class="tb-mark" data-logo></div>
+            <div class="tb-name">RFS · Student Portal</div>
+            <button class="tb-icon-btn" id="refreshBtn" type="button" title="Refresh" aria-label="Refresh"><span data-icon="refresh-cw"></span></button>
+            <button class="tb-logout" id="logoutBtn" type="button"><span data-icon="log-out"></span>Logout</button>
+        </div>
+    </header>
+
+    <main class="main" id="main">
+        <div class="content">
+
+            <!-- ── Dashboard tab ── -->
+            <div class="panel" id="tab-dashboard">
+                <header class="head">
+                    <div class="avatar" id="avatar" aria-hidden="true"></div>
+                    <div class="who">
+                        <small>Welcome back,</small>
+                        <h2 id="fullName"></h2>
+                        <span class="reg" id="regLabel"></span>
                     </div>
-                </div>
-                <h1 class="ap-title">Student Portal</h1>
-                <div class="ap-meta">
-                    <span class="ap-tag">Finding the Rock</span>
-                    <span class="ap-tag gold" id="streamTag" hidden></span>
-                </div>
+                    <span class="badge" id="eligBadge"></span>
+                </header>
+                <div class="standing" id="standing"><span class="dot" id="standingDot"></span><div id="standingText"></div></div>
+
+                <section>
+                    <div class="sec-head"><h3>Overview</h3><span id="streamNote"></span></div>
+                    <div class="stats">
+                        <div class="stat peach">
+                            <div class="ico" data-icon="calendar"></div>
+                            <div class="lbl">Attendance Points</div>
+                            <div class="num" id="statPts">0</div>
+                        </div>
+                        <div class="stat lilac">
+                            <div class="ico" data-icon="target"></div>
+                            <div class="lbl">Expected</div>
+                            <div class="num" id="statExp">0</div>
+                        </div>
+                        <div class="stat sky">
+                            <div class="ico" data-icon="percent"></div>
+                            <div class="lbl">Attendance %</div>
+                            <div class="num" id="statPct">0%</div>
+                        </div>
+                        <div class="stat leaf">
+                            <div class="ico" data-icon="users"></div>
+                            <div class="lbl">Stream</div>
+                            <div class="num text" id="statStream"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="nextSec">
+                    <div class="sec-head"><h3>Next Class</h3></div>
+                    <div class="next">
+                        <div class="next-top">
+                            <span data-icon="clock"></span>
+                            <span id="nextTime"></span>
+                            <span class="when" id="nextWhen"></span>
+                        </div>
+                        <h4 id="nextTopic"></h4>
+                        <p id="nextDate"></p>
+                    </div>
+                </section>
+
+                <section id="monthsSec">
+                    <div class="sec-head"><h3>Attendance by Month</h3></div>
+                    <div class="months"><div class="months-row" id="months"></div></div>
+                </section>
+
+                <section>
+                    <div class="sec-head"><h3>Details</h3></div>
+                    <div class="list"><div class="grp">
+                        <button class="row link" type="button" data-goto="attendance">
+                            <span class="sico att" data-icon="calendar"></span>
+                            <span class="rmain"><span class="t" style="display:block">Class Attendance</span><span class="s" id="shortAtt" style="display:block"></span></span>
+                            <span class="chev" data-icon="chevron-right"></span>
+                        </button>
+                        <button class="row link" type="button" data-goto="tests">
+                            <span class="sico tst" data-icon="clipboard"></span>
+                            <span class="rmain"><span class="t" style="display:block">Test Status</span><span class="s" id="shortTests" style="display:block"></span></span>
+                            <span class="chev" data-icon="chevron-right"></span>
+                        </button>
+                    </div></div>
+                </section>
+
+                <p class="note" id="updatedNote" aria-live="polite"></p>
             </div>
-            <form class="ap-body" id="loginForm" novalidate>
-                <div class="ap-field">
-                    <label for="regInput">Registration Number</label>
-                    <input class="ap-input" id="regInput" name="reg" type="text" inputmode="text" autocomplete="off"
-                           autocapitalize="characters" spellcheck="false" placeholder="RFS / XXXX / XXX" maxlength="14">
-                    <span class="ap-hint">Format: RFS/2601/053</span>
-                    <span class="ap-err" id="regErr" hidden></span>
-                </div>
-                <button class="ap-btn" id="signInBtn" type="submit"></button>
-                <div class="ap-status" id="loginError" role="alert" hidden></div>
-            </form>
+
+            <!-- ── Attendance tab ── -->
+            <div class="panel" id="tab-attendance" hidden>
+                <div class="page-head"><h2>Class Attendance</h2><span id="classCount"></span></div>
+                <div class="list" id="classList"></div>
+            </div>
+
+            <!-- ── Tests tab ── -->
+            <div class="panel" id="tab-tests" hidden>
+                <div class="page-head"><h2>Test Status</h2><span id="testCount"></span></div>
+                <div class="list" id="testList"></div>
+            </div>
         </div>
     </main>
 
-    <!-- ── Dashboard ───────────────────────────────────────── -->
-    <main id="dash" hidden>
-        <header class="head">
-            <div class="avatar" id="avatar" aria-hidden="true"></div>
-            <div class="who">
-                <small>Welcome back,</small>
-                <h2 id="fullName"></h2>
-                <span class="reg" id="regLabel"></span>
-            </div>
-            <span class="badge" id="eligBadge"></span>
-        </header>
-        <div class="standing" id="standing"><span class="dot" id="standingDot"></span><div id="standingText"></div></div>
-
-        <section>
-            <div class="sec-head"><h3>Overview</h3><span id="streamNote"></span></div>
-            <div class="stats">
-                <div class="stat peach">
-                    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 10h18M8.5 15l2.2 2.2L15.5 13"/></svg></div>
-                    <div class="lbl">Attendance Points</div>
-                    <div class="num" id="statPts">0</div>
-                </div>
-                <div class="stat lilac">
-                    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg></div>
-                    <div class="lbl">Expected</div>
-                    <div class="num" id="statExp">0</div>
-                </div>
-                <div class="stat sky">
-                    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V14M10 20V9M16 20v-6M22 4l-6 5-4-3-8 6"/></svg></div>
-                    <div class="lbl">Attendance %</div>
-                    <div class="num" id="statPct">0%</div>
-                </div>
-                <div class="stat leaf">
-                    <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 5.4"/></svg></div>
-                    <div class="lbl">Stream</div>
-                    <div class="num text" id="statStream"></div>
-                </div>
-            </div>
-        </section>
-
-        <section id="monthsSec">
-            <div class="sec-head"><h3>Attendance by Month</h3></div>
-            <div class="months"><div class="months-row" id="months"></div></div>
-        </section>
-
-        <section id="nextSec">
-            <div class="sec-head"><h3>Next Class</h3></div>
-            <div class="next">
-                <div class="next-top">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
-                    <span id="nextTime"></span>
-                    <span class="when" id="nextWhen"></span>
-                </div>
-                <h4 id="nextTopic"></h4>
-                <p id="nextDate"></p>
-            </div>
-        </section>
-
-        <section>
-            <div class="sec-head"><h3>Class Attendance</h3><span id="classCount"></span></div>
-            <div class="list" id="classList"></div>
-        </section>
-
-        <section>
-            <div class="sec-head"><h3>Test Status</h3><span id="testCount"></span></div>
-            <div class="list" id="testList"></div>
-        </section>
-
-        <div class="actions">
-            <button class="btn-ghost" id="refreshBtn" type="button">Refresh</button>
-            <button class="btn-ghost danger" id="logoutBtn" type="button">Log out</button>
+    <nav class="mob-nav" id="mobNav" aria-label="Sections">
+        <div class="mob-nav-in">
+            <button class="mob-nav-item active" type="button" data-tab="dashboard"><span data-icon="grid"></span>Dashboard</button>
+            <button class="mob-nav-item" type="button" data-tab="attendance"><span data-icon="calendar"></span>Attendance</button>
+            <button class="mob-nav-item" type="button" data-tab="tests"><span data-icon="clipboard"></span>Tests</button>
         </div>
-        <p class="note" id="updatedNote" aria-live="polite"></p>
-    </main>
+    </nav>
 </div>
 
 <script>
@@ -374,20 +461,39 @@
 const STUDENT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMmM2fHiOLcRN_63A15K7Qkft3xFd9D9FsLTeBomuoK2Gom3w5S19Se0gW43fCSY4q/exec';
 const SESSION_KEY = 'rfsStudentPortal';
 const REQUEST_TIMEOUT_MS = 20000;
+const TABS = ['dashboard', 'attendance', 'tests'];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const ICONS = {
-    yes: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
-    no: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 7l10 10M17 7L7 17"/></svg>',
-    dash: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M7 12h10"/></svg>'
+
+// ── Icons: Feather (feather/*.svg in the project), inner markup copied so the page stays self-contained ──
+const FEATHER = {
+    'grid': '<rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>',
+    'calendar': '<rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line>',
+    'clipboard': '<path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>',
+    'refresh-cw': '<polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>',
+    'log-out': '<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line>',
+    'log-in': '<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line>',
+    'check': '<polyline points="20 6 9 17 4 12"></polyline>',
+    'x': '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>',
+    'minus': '<line x1="5" y1="12" x2="19" y2="12"></line>',
+    'clock': '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>',
+    'chevron-right': '<polyline points="9 18 15 12 9 6"></polyline>',
+    'target': '<circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle>',
+    'percent': '<line x1="19" y1="5" x2="5" y2="19"></line><circle cx="6.5" cy="6.5" r="2.5"></circle><circle cx="17.5" cy="17.5" r="2.5"></circle>',
+    'users': '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path>'
 };
-const ELIG_TEXT = {
-    'ELIGIBLE': 'Eligible',
-    'ELIGIBLE-W': 'Eligible (warning)',
-    'MAKE-UP': 'Make-up',
-    'NOT ELIGIBLE': 'Not eligible'
-};
+const fi = (name, sw) => '<svg class="fi fi-' + name + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 2) +
+    '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + FEATHER[name] + '</svg>';
+// House on the Rock logo (same SVG as admin.html / assessment.html)
+const LOGO = '<svg viewBox="0 0 1535.61 720.7" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="House on the Rock">' +
+    '<path fill="#7ac042" d="M0,693.1l17.76-27.95,78.77-14.93,39.53-55.38c77.39-18.85,157.19-33.28,236.48-44.4,298.97-41.95,607.51-36.4,904.31,19.14,48.81,9.13,92.27,16.51,137.14,38.78,15.07,7.48,54.7,29.33,64.06,41.87,6.62,8.87,11.26,24.98,17.82,34.63,6.09,3.05,24.83,2.93,29.31,6.17,1.19.86,10.43,20.26,10.44,21.53-8.4,1.77-17.28-.18-25.46-.53-172.91-7.3-345.62-20.92-518.95-15.98-120.92,3.45-242.02,15.47-362.82,21.05-167.22,7.73-335,2.5-501.9-11.03-42.2-3.42-84.32-8.22-126.47-11.98v-1Z"/>' +
+    '<path fill="#26361b" d="M905.76,112.87v160.78c24.25-7.17,48.56-17.58,74.47-15.96,28.01,1.75,53.53,16.33,75.81,32.13,50,35.45,119.73,106.25,181.15,113.65,13.1,1.58,26.08-1.17,36.47,9.51,5.34,5.49,12.01,21.51,12.01,28.95v22.47l-64.98,1v45.94c-35.89-4.17-71.67-10.41-107.6-14.86-242.16-30.01-485.68-27.78-727.54,4.01-19.03,2.5-37.9,6.26-57.05,7.91-2.5-13.93-2.65-28.83-1.58-43h-41.99v-31.46c0-3.13,1.55-12.2,2.48-15.5,2.27-8.01,6.95-12.37,15.27-13.7,101.98-.92,204.14,1.97,304.17-19.72,86.33-18.72,163.38-55.83,243.75-90.56.54-17.23-.14-34.53.17-51.77.1-5.48-.09-10.99,0-16.48,15.76-35.82,32.94-71.42,50.13-106.71.93-1.91,1.92-4.24,3-5.99.46-.74,1.51-2.57,1.85-.64Z"/>' +
+    '<path fill="#f6eb19" d="M850.78,242.7c-75.13,29.86-146.12,67.66-224.73,88.6-38.12,10.16-77.21,16.63-116.54,20.16l-1.47-1.58c-9.55-57.54-3.35-116.46,19.35-170.07C583.95,46.3,728.79-28.69,870.99,10.3c109.33,29.97,193.87,126.56,210.72,238.39-1.54.38-2.17-.63-3.28-1.2-7.95-4.12-16.61-11.38-25.03-15.94-30.39-16.47-65.95-25.9-100.59-19.82l-47.04-98.85c-.35-1.93-1.4-.09-1.85.64-1.08,1.75-2.07,4.08-3,5.99-17.19,35.29-34.37,70.89-50.13,106.71-.09,5.49.1,11,0,16.48Z"/></svg>';
+document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = fi(el.dataset.icon); });
+document.querySelectorAll('[data-logo]').forEach(el => { el.innerHTML = LOGO; });
+
+const ELIG_TEXT = { 'ELIGIBLE': 'Eligible', 'ELIGIBLE-W': 'Eligible (warning)', 'MAKE-UP': 'Make-up', 'NOT ELIGIBLE': 'Not eligible' };
 const ELIG_COLOR = { 'ELIGIBLE': '#4caf50', 'ELIGIBLE-W': '#2196f3', 'MAKE-UP': '#ff9800', 'NOT ELIGIBLE': '#e53935' };
 
 // ── Session (sessionStorage only; every access guarded) ──────
@@ -395,15 +501,21 @@ function readSession() {
     try { const v = JSON.parse(sessionStorage.getItem(SESSION_KEY) || 'null'); return v && v.reg && v.data ? v : null; }
     catch (e) { return null; }
 }
-function writeSession(reg, data) {
-    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify({ reg: reg, data: data, savedAt: Date.now() })); } catch (e) {}
+function writeSession(reg, data, tab) {
+    try {
+        const old = readSession();
+        sessionStorage.setItem(SESSION_KEY, JSON.stringify({ reg: reg, data: data, savedAt: Date.now(), tab: tab || (old && old.reg === reg && old.tab) || 'dashboard' }));
+    } catch (e) {}
+}
+function saveTab(tab) {
+    try { const s = readSession(); if (s) { s.tab = tab; sessionStorage.setItem(SESSION_KEY, JSON.stringify(s)); } } catch (e) {}
 }
 function clearSession() { try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {} }
 
 // ── Reg number: "rfs 2601 053", "2601/053", "2601053" → "RFS/2601/053" ──
 function normaliseReg(raw) {
     const t = String(raw || '').toUpperCase().replace(/\s+/g, '');
-    let m = /^(?:RFS)?\/?(\d{4})\/?(\d{3})$/.exec(t);
+    const m = /^(?:RFS)?\/?(\d{4})\/?(\d{3})$/.exec(t);
     return m ? 'RFS/' + m[1] + '/' + m[2] : t;
 }
 
@@ -423,12 +535,12 @@ async function fetchStatus(reg) {
     } finally { clearTimeout(timer); }
 }
 
-// ── Screens ──────────────────────────────────────────────────
-const SIGN_IN_LABEL = '<svg width="16" height="16" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 3H5a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4"/><polyline points="16 3 20 7 12 11"/></svg>View My Status';
+// ── Login ────────────────────────────────────────────────────
+const SIGN_IN_LABEL = fi('log-in') + 'Sign in';
 function showLogin(message) {
     $('dash').hidden = true;
     $('login').hidden = false;
-    document.body.classList.add('on-login');
+    $('login').scrollTop = 0;
     const err = $('loginError');
     err.textContent = message || '';
     err.hidden = !message;
@@ -447,8 +559,8 @@ function setRegError(message) {
     $('regInput').classList.toggle('invalid', !!message);
 }
 
-// The active stream on the login card ("Stream 3 · 2026"), from the public get_active_stream.
-// Best effort: on any failure the tag just stays hidden.
+// The active stream in the eyebrow ("Student Access · Stream 3 · 2026"), from the public
+// get_active_stream. Best effort: on any failure the eyebrow just says "Student Access".
 let streamTagLoaded = false;
 async function loadStreamTag() {
     if (streamTagLoaded) return;
@@ -461,12 +573,12 @@ async function loadStreamTag() {
         const d = await res.json();
         if (!d || d.status !== 'success' || !d.stream) { streamTagLoaded = false; return; }
         const st = /^\d+$/.test(String(d.stream)) ? String(Number(d.stream)) : String(d.stream);
-        $('streamTag').textContent = 'Stream ' + st + (d.year ? ' · ' + d.year : '');
+        $('streamTag').textContent = ' · Stream ' + st + (d.year ? ' · ' + d.year : '');
         $('streamTag').hidden = false;
     } catch (e) { streamTagLoaded = false; }
 }
 
-// Same as the Assessment Portal: letters, digits and "/" only, upper-case
+// Letters, digits and "/" only, upper-case (as in the Assessment Portal)
 $('regInput').addEventListener('input', e => {
     e.target.value = e.target.value.replace(/[^A-Za-z0-9/]/g, '').toUpperCase();
     setRegError('');
@@ -483,16 +595,16 @@ $('loginForm').addEventListener('submit', async e => {
     const r = await fetchStatus(reg);
     setBusy(false);
     if (!r.ok) { showLogin(r.message); return; }
-    writeSession(reg, r.data);
+    $('regInput').blur();
+    writeSession(reg, r.data, 'dashboard');
     renderDashboard(r.data, Date.now());
-    window.scrollTo(0, 0);
+    setTab('dashboard');
 });
 
 $('logoutBtn').addEventListener('click', () => {
     clearSession();
     $('regInput').value = '';
     showLogin('');
-    window.scrollTo(0, 0);
 });
 
 $('refreshBtn').addEventListener('click', () => refresh(false));
@@ -501,14 +613,29 @@ async function refresh(quiet) {
     const s = readSession();
     if (!s) { showLogin(''); return; }
     const btn = $('refreshBtn');
-    btn.disabled = true; btn.textContent = 'Refreshing…';
+    btn.disabled = true; btn.classList.add('busy');
     const r = await fetchStatus(s.reg);
-    btn.disabled = false; btn.textContent = 'Refresh';
+    btn.disabled = false; btn.classList.remove('busy');
     if (r.ok) { writeSession(s.reg, r.data); renderDashboard(r.data, Date.now()); return; }
     const note = $('updatedNote');
     note.className = 'note warn';
     note.textContent = (quiet ? 'Showing saved details. ' : '') + r.message;
 }
+
+// ── Tabs (bottom nav, as in the admin dashboard's mobile view) ──
+function setTab(tab) {
+    if (TABS.indexOf(tab) === -1) tab = 'dashboard';
+    TABS.forEach(t => { $('tab-' + t).hidden = t !== tab; });
+    document.querySelectorAll('.mob-nav-item').forEach(b => {
+        const on = b.dataset.tab === tab;
+        b.classList.toggle('active', on);
+        if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    $('main').scrollTop = 0;
+    saveTab(tab);
+}
+document.querySelectorAll('.mob-nav-item').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
+document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.goto)));
 
 // ── Dates ────────────────────────────────────────────────────
 const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -529,7 +656,6 @@ function renderDashboard(d, savedAt) {
     TODAY = d.today || '';
     $('login').hidden = true;
     $('dash').hidden = false;
-    document.body.classList.remove('on-login');
 
     const first = d.firstName || '', last = d.lastName || '';
     $('avatar').textContent = ((first[0] || '') + (last[0] || '')).toUpperCase() || '?';
@@ -541,6 +667,7 @@ function renderDashboard(d, savedAt) {
     badge.setAttribute('aria-label', 'Status: ' + (ELIG_TEXT[d.eligibility] || d.eligibility));
 
     const classes = Array.isArray(d.classes) ? d.classes : [];
+    const tests = Array.isArray(d.tests) ? d.tests : [];
     renderStanding(d, classes.filter(isAhead).length);
 
     $('statPts').textContent = d.attPts;
@@ -552,7 +679,9 @@ function renderDashboard(d, savedAt) {
     renderMonths(classes);
     renderNext(d.nextClass, d.today);
     renderClasses(classes);
-    renderTests(Array.isArray(d.tests) ? d.tests : []);
+    renderTests(tests);
+    $('shortAtt').textContent = $('classCount').textContent || 'No classes yet';
+    $('shortTests').textContent = $('testCount').textContent || 'No tests set yet';
 
     const note = $('updatedNote');
     note.className = 'note';
@@ -606,18 +735,22 @@ function renderNext(n, today) {
     $('nextDate').textContent = longDate(n.date) + (wd === 6 ? ' · Saturday class' : wd === 0 ? ' · Sunday class' : '');
 }
 
+const mark = (kind, icon, title) => '<span class="mark ' + kind + '" title="' + title + '"><span class="circle">' + fi(icon, 3) + '</span></span>';
+
+// Topic first; the date (and day) small underneath
 function classRow(c) {
-    const label = c.eventType === 'SAT' ? 'Saturday' : 'Sunday';
+    const day = c.eventType === 'SAT' ? 'Saturday' : 'Sunday';
+    const title = c.topic || day + ' class';
     let right;
-    if (c.state === 'ATTENDED') right = '<span class="mark yes" title="Attended"><span class="circle">' + ICONS.yes + '</span></span>';
+    if (c.state === 'ATTENDED') right = mark('yes', 'check', 'Attended');
     else if (c.state === 'PARTIAL' && c.date === TODAY && c.checkedIn) right = '<span class="chip today">Checked in</span>';
     else if (c.state === 'PARTIAL') right = '<span class="chip part">' + (c.checkedIn ? 'In only' : 'Out only') + '</span>';
-    else if (c.state === 'ABSENT') right = '<span class="mark no" title="Absent"><span class="circle">' + ICONS.no + '</span></span>';
+    else if (c.state === 'ABSENT') right = mark('no', 'x', 'Absent');
     else if (c.state === 'TODAY') right = '<span class="chip today">Today</span>';
     else right = '<span class="chip soon">Upcoming</span>';
     const aria = { ATTENDED: 'attended', PARTIAL: c.date === TODAY && c.checkedIn ? 'checked in' : c.checkedIn ? 'checked in only' : 'checked out only', ABSENT: 'absent', TODAY: 'today', UPCOMING: 'upcoming' }[c.state] || '';
-    return '<div class="row" aria-label="' + esc(shortDate(c.date) + ', ' + label + ', ' + aria) + '">' +
-        '<div class="main"><div class="t">' + esc(shortDate(c.date)) + '</div><div class="s">' + label + '</div></div>' + right + '</div>';
+    return '<div class="row" aria-label="' + esc(title + ', ' + shortDate(c.date) + ', ' + aria) + '">' +
+        '<div class="rmain"><div class="t">' + esc(title) + '</div><div class="s">' + esc(shortDate(c.date) + ' · ' + day) + '</div></div>' + right + '</div>';
 }
 
 function renderClasses(classes) {
@@ -637,15 +770,15 @@ function renderTests(tests) {
     $('testCount').textContent = tests.length ? taken + ' of ' + tests.length + ' taken' : '';
     $('testList').innerHTML = tests.length ? '<div class="grp">' + tests.map(t =>
         '<div class="row" aria-label="' + esc(t.topic + ', ' + (t.taken ? 'taken' : 'not taken yet')) + '">' +
-        '<div class="main"><div class="t">' + esc(t.topic) + '</div><div class="s">' + (t.taken ? 'Taken' : 'Not taken yet') + '</div></div>' +
-        '<span class="mark ' + (t.taken ? 'yes' : 'dash') + '"><span class="circle">' + (t.taken ? ICONS.yes : ICONS.dash) + '</span></span></div>'
+        '<div class="rmain"><div class="t">' + esc(t.topic) + '</div><div class="s">' + (t.taken ? 'Taken' : 'Not taken yet') + '</div></div>' +
+        (t.taken ? mark('yes', 'check', 'Taken') : mark('dash', 'minus', 'Not taken yet')) + '</div>'
     ).join('') + '</div>' : '<div class="empty">No tests set yet.</div>';
 }
 
-// ── Start: a saved session skips the login, then refreshes quietly ──
+// ── Start: a saved session skips the login (same tab as before), then refreshes quietly ──
 (function start() {
     const s = readSession();
-    if (s) { renderDashboard(s.data, s.savedAt); refresh(true); }
+    if (s) { renderDashboard(s.data, s.savedAt); setTab(s.tab || 'dashboard'); refresh(true); }
     else showLogin('');
 })();
 </script>
