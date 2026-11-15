@@ -297,6 +297,22 @@
         .tnum { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex-shrink: 0; font-size: 14px; font-weight: 800; background: #EEEFEB; color: var(--muted); }
         .trow.done .tnum { background: var(--black); color: var(--yellow); }
         .trow .tt { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
+
+        /* ── Join Exam Group (ELIGIBLE / ELIGIBLE-W only, Home tab) — floats just above the bottom nav ── */
+        /* Round black button, WhatsApp logo only, at the right edge of the 480 px content column */
+        .wa-fab {
+            position: fixed; z-index: 110; right: max(16px, calc(50% - 224px));
+            bottom: calc(var(--nav-h) + 14px + env(safe-area-inset-bottom));
+            width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center;
+            background: var(--black); text-decoration: none;
+            box-shadow: 0 10px 28px rgba(20, 22, 19, 0.28); -webkit-tap-highlight-color: transparent;
+            animation: wa-rise .35s cubic-bezier(.22, .68, 0, 1.2) both; transition: transform .08s;
+        }
+        .wa-fab img { width: 34px; height: 34px; display: block; }
+        .wa-fab:active { transform: scale(0.94); }
+        .wa-fab:focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+        @keyframes wa-rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+        .content.has-fab { padding-bottom: calc(var(--nav-h) + 98px + env(safe-area-inset-bottom)); }
     </style>
 </head>
 <body>
@@ -451,6 +467,8 @@
         </div>
     </main>
 
+    <a class="wa-fab" id="examGroupBtn" href="#" target="_blank" rel="noopener" aria-label="Join Exam Group" title="Join Exam Group" hidden><img id="examGroupIcon" alt=""></a>
+
     <nav class="mob-nav" id="mobNav" aria-label="Sections">
         <div class="mob-nav-in">
             <button class="mob-nav-item active" type="button" data-tab="home"><span class="nbox" data-icon="home"></span>Home</button>
@@ -466,6 +484,10 @@ const STUDENT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMmM2fHiOLc
 const SESSION_KEY = 'rfsStudentPortal';
 const REQUEST_TIMEOUT_MS = 20000;
 const TABS = ['home', 'attendance', 'tests'];
+// WhatsApp exam group — only ELIGIBLE / ELIGIBLE-W students see the "Join Exam Group" button (Home tab).
+// Change this link for each stream's new group. It is in the public page source.
+const EXAM_GROUP_URL = 'https://chat.whatsapp.com/L59edqWEWBgJjtXlfN3Ahm';
+const EXAM_GROUP_LEVELS = ['ELIGIBLE', 'ELIGIBLE-W'];
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -494,6 +516,8 @@ const LOGO = '<svg viewBox="0 0 1535.61 720.7" xmlns="http://www.w3.org/2000/svg
     '<path fill="#7ac042" d="M0,693.1l17.76-27.95,78.77-14.93,39.53-55.38c77.39-18.85,157.19-33.28,236.48-44.4,298.97-41.95,607.51-36.4,904.31,19.14,48.81,9.13,92.27,16.51,137.14,38.78,15.07,7.48,54.7,29.33,64.06,41.87,6.62,8.87,11.26,24.98,17.82,34.63,6.09,3.05,24.83,2.93,29.31,6.17,1.19.86,10.43,20.26,10.44,21.53-8.4,1.77-17.28-.18-25.46-.53-172.91-7.3-345.62-20.92-518.95-15.98-120.92,3.45-242.02,15.47-362.82,21.05-167.22,7.73-335,2.5-501.9-11.03-42.2-3.42-84.32-8.22-126.47-11.98v-1Z"/>' +
     '<path fill="#26361b" d="M905.76,112.87v160.78c24.25-7.17,48.56-17.58,74.47-15.96,28.01,1.75,53.53,16.33,75.81,32.13,50,35.45,119.73,106.25,181.15,113.65,13.1,1.58,26.08-1.17,36.47,9.51,5.34,5.49,12.01,21.51,12.01,28.95v22.47l-64.98,1v45.94c-35.89-4.17-71.67-10.41-107.6-14.86-242.16-30.01-485.68-27.78-727.54,4.01-19.03,2.5-37.9,6.26-57.05,7.91-2.5-13.93-2.65-28.83-1.58-43h-41.99v-31.46c0-3.13,1.55-12.2,2.48-15.5,2.27-8.01,6.95-12.37,15.27-13.7,101.98-.92,204.14,1.97,304.17-19.72,86.33-18.72,163.38-55.83,243.75-90.56.54-17.23-.14-34.53.17-51.77.1-5.48-.09-10.99,0-16.48,15.76-35.82,32.94-71.42,50.13-106.71.93-1.91,1.92-4.24,3-5.99.46-.74,1.51-2.57,1.85-.64Z"/>' +
     '<path fill="#f6eb19" d="M850.78,242.7c-75.13,29.86-146.12,67.66-224.73,88.6-38.12,10.16-77.21,16.63-116.54,20.16l-1.47-1.58c-9.55-57.54-3.35-116.46,19.35-170.07C583.95,46.3,728.79-28.69,870.99,10.3c109.33,29.97,193.87,126.56,210.72,238.39-1.54.38-2.17-.63-3.28-1.2-7.95-4.12-16.61-11.38-25.03-15.94-30.39-16.47-65.95-25.9-100.59-19.82l-47.04-98.85c-.35-1.93-1.4-.09-1.85.64-1.08,1.75-2.07,4.08-3,5.99-17.19,35.29-34.37,70.89-50.13,106.71-.09,5.49.1,11,0,16.48Z"/></svg>';
+// WhatsApp icon (whatsapp.png in the project root, 96 px), embedded so the page stays self-contained
+const WA_ICON = 'data:image/png;base64,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';
 document.querySelectorAll('[data-icon]').forEach(el => { el.innerHTML = fi(el.dataset.icon); });
 document.querySelectorAll('[data-logo]').forEach(el => { el.innerHTML = LOGO; });
 
@@ -545,6 +569,8 @@ const SIGN_IN_LABEL = fi('log-in') + 'View My Status';
 function showLogin(message) {
     $('dash').hidden = true;
     $('login').hidden = false;
+    DATA = null;
+    updateExamGroupBtn('');
     $('login').scrollTop = 0;
     const err = $('loginError');
     err.textContent = message || '';
@@ -675,8 +701,18 @@ function setTab(tab) {
     });
     $('main').scrollTop = 0;
     saveTab(tab);
+    updateExamGroupBtn(tab);
     if (tab === 'home') scrollChartToLatest();
 }
+// Floating "Join Exam Group": Home tab only, and only for ELIGIBLE / ELIGIBLE-W.
+function currentTab() { const a = document.querySelector('.mob-nav-item.active'); return a ? a.dataset.tab : 'home'; }
+function updateExamGroupBtn(tab) {
+    const show = !!DATA && tab === 'home' && EXAM_GROUP_LEVELS.indexOf(String(DATA.eligibility || '').trim().toUpperCase()) !== -1;
+    $('examGroupBtn').hidden = !show;
+    document.querySelector('.content').classList.toggle('has-fab', show);
+}
+$('examGroupBtn').href = EXAM_GROUP_URL;
+$('examGroupIcon').src = WA_ICON;
 document.querySelectorAll('.mob-nav-item').forEach(b => b.addEventListener('click', () => setTab(b.dataset.tab)));
 document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => setTab(b.dataset.goto)));
 
@@ -723,6 +759,7 @@ function renderAll(d, savedAt) {
     renderHome(d, classes, tests);
     renderCalendar(classes);
     renderTests(tests);
+    updateExamGroupBtn(currentTab());
     const note = $('updatedNote');
     note.className = 'note';
     const t = new Date(savedAt || Date.now());
