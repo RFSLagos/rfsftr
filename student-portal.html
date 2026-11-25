@@ -298,6 +298,41 @@
         .trow.done .tnum { background: var(--black); color: var(--yellow); }
         .trow .tt { flex: 1; min-width: 0; font-size: 15.5px; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 
+        /* ── Assessment: released result (HOD-approved, frozen copy) ── */
+        .result { padding: 18px 18px 20px; }
+        .result .task-top { align-items: center; }
+        .result .task-top .tile { background: var(--yellow-soft); }
+        .result .task-top h4 small { display: block; font-size: 13px; color: var(--muted); font-weight: 700; margin-top: 2px; }
+        .result p { color: var(--muted); font-size: 14.5px; margin-top: 10px; line-height: 1.45; }
+        .result p.congrats { color: var(--ink); font-weight: 600; }
+        .rlist { margin-top: 12px; }
+        .rrow { display: grid; grid-template-columns: 1fr auto; align-items: baseline; gap: 6px 10px; padding: 12px 0 13px; }
+        .rrow + .rrow { border-top: 1px solid var(--line); }
+        .rrow .rl { font-size: 15px; font-weight: 700; }
+        .rrow .rv { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; }
+        .rrow .rv small { font-size: 13px; color: var(--muted); font-weight: 700; }
+        .rrow .progress { grid-column: 1 / -1; height: 6px; }
+        .rtotal { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; padding: 14px 16px; border-radius: 16px; background: var(--black); color: #fff; }
+        .rtotal span { font-size: 15px; font-weight: 700; }
+        .rtotal b { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: var(--yellow); }
+        .rtotal b small { font-size: 14px; color: #C9CBC5; font-weight: 700; }
+        .pdf-btn {
+            width: 100%; height: 52px; margin-top: 16px; border-radius: 999px; background: var(--black); color: #fff;
+            display: flex; align-items: center; justify-content: center; gap: 9px; font-size: 15.5px; font-weight: 700;
+            -webkit-tap-highlight-color: transparent; transition: transform .08s;
+        }
+        .pdf-btn .fi { width: 19px; height: 19px; color: var(--green); }
+        .pdf-btn:active { transform: scale(0.98); }
+        .pdf-btn:disabled { opacity: .7; }
+        .pdf-err { margin-top: 10px; color: var(--red); font-size: 13.5px; font-weight: 600; text-align: center; }
+        .result .released { margin-top: 12px; font-size: 12.5px; color: var(--muted); font-weight: 700; text-align: center; }
+        .badge.PASSED { background: var(--green); }
+        .badge.PASSED-W { background: var(--yellow); }
+        .badge.FAIL, .badge.WITHHELD { background: var(--red); color: #fff; }
+        .badge.DEFERRED { background: var(--yellow); box-shadow: inset 0 0 0 1.5px var(--black); }
+        .badge.PENDING, .badge.NA { background: #EEEFEB; color: var(--ink-2); }
+        .banner.go { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+
         /* ── Join Exam Group (ELIGIBLE / ELIGIBLE-W only, Home tab) — floats just above the bottom nav ── */
         /* Black pill "Join the Exam Group" (banner font) tucked under a round black WhatsApp button, at the right edge of the 480 px content column */
         .wa-fab {
@@ -371,7 +406,7 @@
 </div>
 
 
-<!-- ══ APP: header · Home / Attendance / Tests · bottom nav ══ -->
+<!-- ══ APP: header · Home / Attendance / Assessment · bottom nav ══ -->
 <div class="app" id="dash" hidden>
     <header class="apphead">
         <div class="apphead-in">
@@ -424,7 +459,7 @@
                     </div>
                 </div>
 
-                <div class="sec-head"><h3>Tests</h3><button class="see-all" type="button" data-goto="tests">See all<span data-icon="chevron-right"></span></button></div>
+                <div class="sec-head"><h3>Tests</h3><button class="see-all" type="button" data-goto="assessment">See all<span data-icon="chevron-right"></span></button></div>
                 <div class="card task">
                     <div class="task-top"><h4>Tests taken</h4><span class="chip grey" id="homeTestChip"></span></div>
                     <p>Each test shows as taken once its score is recorded.</p>
@@ -461,9 +496,11 @@
                 <p class="msum" id="monthSummary"></p>
             </div>
 
-            <!-- ── Tests ── -->
-            <div class="panel" id="tab-tests" hidden>
-                <div class="page-title"><h2>Tests<small id="testCount"></small></h2></div>
+            <!-- ── Assessment: result (once released by a Super Admin) + tests taken ── -->
+            <div class="panel" id="tab-assessment" hidden>
+                <div class="page-title"><h2>Assessment<small id="testCount"></small></h2></div>
+                <div class="card result" id="resultCard"></div>
+                <div class="sec-head"><h3>Tests</h3></div>
                 <div class="banner">
                     <div class="btile warn" data-icon="clipboard"></div>
                     <div class="btext" id="testBanner"></div>
@@ -484,7 +521,7 @@
         <div class="mob-nav-in">
             <button class="mob-nav-item active" type="button" data-tab="home"><span class="nbox" data-icon="home"></span>Home</button>
             <button class="mob-nav-item" type="button" data-tab="attendance"><span class="nbox" data-icon="calendar"></span>Attendance</button>
-            <button class="mob-nav-item" type="button" data-tab="tests"><span class="nbox" data-icon="clipboard"></span>Tests</button>
+            <button class="mob-nav-item" type="button" data-tab="assessment"><span class="nbox" data-icon="award"></span>Assessment</button>
         </div>
     </nav>
 </div>
@@ -494,7 +531,13 @@
 const STUDENT_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwMmM2fHiOLcRN_63A15K7Qkft3xFd9D9FsLTeBomuoK2Gom3w5S19Se0gW43fCSY4q/exec';
 const SESSION_KEY = 'rfsStudentPortal';
 const REQUEST_TIMEOUT_MS = 20000;
-const TABS = ['home', 'attendance', 'tests'];
+const TABS = ['home', 'attendance', 'assessment'];
+// Result PDF: jsPDF, loaded only when a student taps Download PDF
+const JSPDF_URL = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+const CLASS_NAME = 'Finding the Rock';
+// Shown with a PASSED / PASSED-W result (the wording of the result email)
+const RESULT_CONGRATS = 'Congratulations on passing the Finding the Rock Course.';
+const RESULT_NEXT = 'Details on the commencement of the Understanding Spiritual Authority class will be communicated via email and Sunday announcements in Church.';
 // WhatsApp exam group — only ELIGIBLE / ELIGIBLE-W students see the "Join Exam Group" button (Home tab).
 // Change this link for each stream's new group. It is in the public page source.
 const EXAM_GROUP_URL = 'https://chat.whatsapp.com/L59edqWEWBgJjtXlfN3Ahm';
@@ -518,7 +561,10 @@ const FEATHER = {
     'check-circle': '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>',
     'alert-circle': '<circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line>',
     'x-circle': '<circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line>',
-    'trending-up': '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>'
+    'trending-up': '<polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline>',
+    'award': '<circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>',
+    'clock': '<circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline>',
+    'download': '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>'
 };
 const fi = (name, sw) => '<svg class="fi fi-' + name + '" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="' + (sw || 2) +
     '" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + FEATHER[name] + '</svg>';
@@ -703,6 +749,7 @@ async function refresh(quiet) {
 // ── Tabs (bottom nav) ────────────────────────────────────────
 function setTab(tab) {
     if (tab === 'dashboard') tab = 'home';                 // older saved sessions
+    if (tab === 'tests') tab = 'assessment';               // the Tests tab is now Assessment
     if (TABS.indexOf(tab) === -1) tab = 'home';
     TABS.forEach(t => { $('tab-' + t).hidden = t !== tab; });
     document.querySelectorAll('.mob-nav-item').forEach(b => {
@@ -770,6 +817,7 @@ function renderAll(d, savedAt) {
     renderHome(d, classes, tests);
     renderCalendar(classes);
     renderTests(tests);
+    renderResult(d);
     updateExamGroupBtn(currentTab());
     const note = $('updatedNote');
     note.className = 'note';
@@ -792,6 +840,12 @@ function renderHome(d, classes, tests) {
     else if (d.eligibility === 'ELIGIBLE-W') { msg = more(need(th.eligible), 'ELIGIBLE'); icon = 'alert-circle'; kind = 'warn'; }
     else if (d.eligibility === 'MAKE-UP') { msg = more(need(th.eligibleW), 'ELIGIBLE-W'); icon = 'alert-circle'; kind = 'warn'; }
     else { msg = more(need(th.makeUp), 'MAKE-UP'); icon = 'x-circle'; kind = 'bad'; }
+    // Results released → the banner points to the Assessment tab
+    const out = !!(d.result && d.result.released);
+    if (out) { msg = 'Your result is out — open Assessment.'; icon = 'award'; kind = 'warn'; }
+    $('banner').classList.toggle('go', out);
+    if (out) { $('banner').setAttribute('role', 'button'); $('banner').tabIndex = 0; }
+    else { $('banner').removeAttribute('role'); $('banner').removeAttribute('tabindex'); }
     $('standingText').textContent = msg;
     $('bannerIcon').className = 'btile ' + kind;
     $('bannerIcon').innerHTML = fi(icon);
@@ -975,6 +1029,226 @@ function renderTests(tests) {
         '<span class="tnum">' + (i + 1) + '</span><span class="tt">' + esc(t.topic) + '</span>' +
         '<span class="chip ' + (t.taken ? 'green' : 'grey') + '">' + (t.taken ? 'Taken' : 'Not yet') + '</span></div>'
     ).join('') : '<div class="empty">No tests set yet.</div>';
+}
+
+$('banner').addEventListener('click', () => { if ($('banner').classList.contains('go')) setTab('assessment'); });
+$('banner').addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ' ') && $('banner').classList.contains('go')) { e.preventDefault(); setTab('assessment'); }
+});
+
+// ── Result (Assessment tab) ──────────────────────────────────
+// d.result comes from the frozen copy a Super Admin released after HOD approval:
+//   {released:false} → pending · PASSED / PASSED-W → breakdown + PDF · other status → status only · missing → contact an admin.
+// An older script sends no result → pending.
+const mark1 = n => (Math.round((Number(n) || 0) * 10) / 10).toFixed(1);
+const maxText = n => String(Math.round((Number(n) || 0) * 10) / 10);
+const STATUS_LABEL = { 'PASSED': 'PASSED', 'PASSED-W': 'PASSED-W', 'FAIL': 'FAIL', 'DEFERRED': 'DEFERRED', 'WITHHELD': 'WITHHELD', 'PENDING': 'PENDING' };
+function releasedLine(r) {
+    return r.releasedAt && /^\d{4}-\d\d-\d\d/.test(r.releasedAt) ? 'Released ' + longDate(r.releasedAt.slice(0, 10)) + ' · Approved by the Head of Department' : 'Approved by the Head of Department';
+}
+function renderResult(d) {
+    const r = d.result || { released: false };
+    const card = $('resultCard');
+    const head = (icon, title, sub, chip) => '<div class="task-top"><div class="tile">' + fi(icon) + '</div><h4>' + esc(title) +
+        (sub ? '<small>' + esc(sub) + '</small>' : '') + '</h4>' + chip + '</div>';
+    if (!r.released) {
+        card.dataset.state = 'pending';
+        card.innerHTML = head('clock', 'Your result isn\'t ready yet', '', '<span class="chip yellow">Pending</span>') +
+            '<p>Results are published after the exam, once the Head of Department has approved them.</p>';
+        return;
+    }
+    const shown = (r.finalStatus === 'PASSED' || r.finalStatus === 'PASSED-W') && Array.isArray(r.breakdown);
+    if (!shown) {
+        const st = STATUS_LABEL[r.finalStatus] ? r.finalStatus : '';
+        card.dataset.state = st ? 'status' : 'missing';
+        card.innerHTML = head('award', 'Your result', CLASS_NAME,
+            st ? '<span class="badge ' + st + '">' + esc(STATUS_LABEL[st]) + '</span>' : '<span class="badge NA">Not available</span>') +
+            '<p>Your result is available from the RFS admins. Please contact an admin.</p>';
+        return;
+    }
+    card.dataset.state = 'passed';
+    const rows = r.breakdown.map(b => {
+        const w = b.max > 0 ? Math.max(0, Math.min(100, b.mark / b.max * 100)) : 0;
+        return '<div class="rrow"><span class="rl">' + esc(b.label) + '</span><span class="rv">' + mark1(b.mark) + '<small> / ' + maxText(b.max) + '</small></span>' +
+            '<div class="progress"><i style="width:' + w.toFixed(1) + '%"></i></div></div>';
+    }).join('');
+    const totalMax = r.breakdown.reduce((s, b) => s + (Number(b.max) || 0), 0) || 100;
+    card.innerHTML = head('award', 'Final Result', CLASS_NAME, '<span class="badge ' + r.finalStatus + '">' + esc(r.finalStatus) + '</span>') +
+        '<p class="congrats">' + esc(RESULT_CONGRATS) + '</p>' +
+        '<div class="rlist">' + rows + '</div>' +
+        '<div class="rtotal"><span>Total</span><b id="resultTotal">' + mark1(r.total) + '<small> / ' + maxText(totalMax) + '</small></b></div>' +
+        '<p>' + esc(RESULT_NEXT) + '</p>' +
+        '<button class="pdf-btn" id="pdfBtn" type="button">' + fi('download') + 'Download PDF</button>' +
+        '<div class="pdf-err" id="pdfErr" role="alert" hidden></div>' +
+        '<div class="released">' + esc(releasedLine(r)) + '</div>';
+    $('pdfBtn').addEventListener('click', downloadResultPdf);
+}
+
+// ── Result PDF (jsPDF, vector, A4) ───────────────────────────
+let jspdfLoading = null;
+function loadJsPdf() {
+    if (window.jspdf && window.jspdf.jsPDF) return Promise.resolve(window.jspdf.jsPDF);
+    if (jspdfLoading) return jspdfLoading;
+    jspdfLoading = new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        const timer = setTimeout(() => { s.onerror = s.onload = null; reject(new Error('timeout')); }, REQUEST_TIMEOUT_MS);
+        s.src = JSPDF_URL; s.async = true; s.crossOrigin = 'anonymous';
+        s.onload = () => { clearTimeout(timer); window.jspdf && window.jspdf.jsPDF ? resolve(window.jspdf.jsPDF) : reject(new Error('missing')); };
+        s.onerror = () => { clearTimeout(timer); reject(new Error('load')); };
+        document.head.appendChild(s);
+    }).catch(err => { jspdfLoading = null; throw err; });
+    return jspdfLoading;
+}
+// The HOTR logo SVG → PNG data URL (jsPDF can't draw SVG). null if the browser can't.
+function logoPng() {
+    return new Promise(resolve => {
+        try {
+            const W = 640, H = Math.round(640 * 720.7 / 1535.61);
+            const svg = LOGO.replace('<svg ', '<svg width="' + W + '" height="' + H + '" ');
+            const img = new Image();
+            img.onload = () => {
+                try {
+                    const c = document.createElement('canvas'); c.width = W; c.height = H;
+                    c.getContext('2d').drawImage(img, 0, 0, W, H);
+                    resolve({ data: c.toDataURL('image/png'), ratio: H / W });
+                } catch (e) { resolve(null); }
+            };
+            img.onerror = () => resolve(null);
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        } catch (e) { resolve(null); }
+    });
+}
+function streamText(d) {
+    const st = /^\d+$/.test(String(d.stream || '')) ? String(Number(d.stream)) : String(d.stream || '');
+    return 'Stream ' + st + (d.year ? ', ' + d.year : '');
+}
+async function downloadResultPdf() {
+    const d = DATA, r = d && d.result;
+    if (!r || !Array.isArray(r.breakdown)) return;
+    const btn = $('pdfBtn'), err = $('pdfErr');
+    err.hidden = true;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" aria-hidden="true"></span>Preparing PDF…';
+    try {
+        const [JsPDF, logo] = await Promise.all([loadJsPdf(), logoPng()]);
+        const doc = buildResultPdf(JsPDF, d, r, logo);
+        doc.save('RFS-Result-' + d.reg.replace(/\//g, '-') + '.pdf');
+    } catch (e) {
+        err.textContent = 'Couldn\'t prepare the PDF — check your connection and try again.';
+        err.hidden = false;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = fi('download') + 'Download PDF';
+    }
+}
+// Layout after the school's result card: logo + centred heading, info rows, bordered table, status, footer.
+function buildResultPdf(JsPDF, d, r, logo) {
+    const doc = new JsPDF({ unit: 'mm', format: 'a4', compress: true });
+    const INK = [20, 22, 19], MUTED = [110, 114, 107], LINE = [200, 202, 196], GREEN = [122, 192, 66], DEEP = [38, 54, 27],
+        YELLOW = [246, 235, 25], SOFT = [230, 243, 218];
+    const L = 20, R = 190, W = R - L, CX = 105;
+    const name = [d.firstName, d.lastName].filter(Boolean).join(' ');
+    doc.setProperties({ title: 'Statement of Result — ' + name, subject: CLASS_NAME, author: 'Rock Foundation School' });
+
+    // Header
+    if (logo) doc.addImage(logo.data, 'PNG', L, 14, 32, 32 * logo.ratio);
+    doc.setTextColor(...MUTED); doc.setFont('helvetica', 'bold'); doc.setFontSize(8.5);
+    doc.text('HOUSE ON THE ROCK LAGOS', CX, 17, { align: 'center', charSpace: 0.6 });
+    doc.setTextColor(...INK); doc.setFontSize(17);
+    doc.text('ROCK FOUNDATION SCHOOL', CX, 25, { align: 'center' });
+    doc.setTextColor(...DEEP); doc.setFontSize(12.5);
+    doc.text('STATEMENT OF RESULT', CX, 33, { align: 'center', charSpace: 0.4 });
+    doc.setTextColor(...INK); doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5);
+    doc.text(CLASS_NAME + ' — ' + streamText(d), CX, 40, { align: 'center' });
+    doc.setFillColor(...YELLOW); doc.rect(L, 46, W, 1.4, 'F');
+    doc.setFillColor(...GREEN); doc.rect(L, 47.4, W, 0.6, 'F');
+
+    // Student info
+    const info = (label, value, x, y, align) => {
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(...INK);
+        const t = label + ': ';
+        if (align === 'right') {
+            doc.setFont('helvetica', 'normal'); const vw = doc.getTextWidth(value);
+            doc.text(value, x, y, { align: 'right' });
+            doc.setFont('helvetica', 'bold'); doc.text(t, x - vw, y, { align: 'right' });
+        } else {
+            doc.text(t, x, y); const tw = doc.getTextWidth(t);
+            doc.setFont('helvetica', 'normal'); doc.text(value, x + tw, y);
+        }
+    };
+    info('Name', name.toUpperCase(), L, 57);
+    info('Reg No', d.reg, R, 57, 'right');
+    info('Class', CLASS_NAME + ' (' + (d.className || 'FTR') + ')', L, 64);
+    info('Stream', streamText(d), R, 64, 'right');
+
+    // Table
+    const cols = [{ w: 100, t: 'Component', a: 'left' }, { w: 35, t: 'Maximum', a: 'center' }, { w: 35, t: 'Obtained', a: 'center' }];
+    const RH = 10;
+    let y = 73;
+    const rowText = (cells, yy, bold) => {
+        let x = L;
+        cells.forEach((c, i) => {
+            const col = cols[i];
+            doc.setFont('helvetica', bold ? 'bold' : 'normal');
+            const tx = col.a === 'left' ? x + 4 : x + col.w / 2;
+            doc.text(String(c), tx, yy + RH / 2 + 1.4, { align: col.a === 'left' ? 'left' : 'center' });
+            x += col.w;
+        });
+    };
+    const grid = (yy, n) => {
+        doc.setDrawColor(...LINE); doc.setLineWidth(0.3);
+        doc.rect(L, yy, W, RH * n);
+        let x = L;
+        cols.slice(0, -1).forEach(c => { x += c.w; doc.line(x, yy, x, yy + RH * n); });
+        for (let k = 1; k < n; k++) doc.line(L, yy + RH * k, R, yy + RH * k);
+    };
+    doc.setFillColor(...INK); doc.rect(L, y, W, RH, 'F');
+    doc.setTextColor(255, 255, 255); doc.setFontSize(10.5);
+    rowText(cols.map(c => c.t), y, true);
+    y += RH;
+    const top = y;
+    doc.setTextColor(...INK); doc.setFontSize(10.5);
+    r.breakdown.forEach((b, i) => {
+        if (i % 2 === 1) { doc.setFillColor(247, 247, 244); doc.rect(L, y, W, RH, 'F'); }
+        rowText([b.label, maxText(b.max), mark1(b.mark)], y, false);
+        y += RH;
+    });
+    const totalMax = r.breakdown.reduce((s, b) => s + (Number(b.max) || 0), 0) || 100;
+    doc.setFillColor(...SOFT); doc.rect(L, y, W, RH, 'F');
+    rowText(['Total', maxText(totalMax), mark1(r.total)], y, true);
+    y += RH;
+    grid(top, r.breakdown.length + 1);
+    doc.setDrawColor(...INK); doc.setLineWidth(0.5); doc.rect(L, top - RH, W, y - top + RH);
+
+    // Status
+    y += 12;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(...INK);
+    const st = r.finalStatus;
+    const pillW = doc.getTextWidth(st) + 10;
+    doc.setFillColor(...(st === 'PASSED' ? GREEN : YELLOW));
+    doc.roundedRect(R - pillW, y - 5.5, pillW, 8, 4, 4, 'F');
+    doc.text(st, R - pillW / 2, y, { align: 'center' });
+    doc.text('Status:', R - pillW - 3, y, { align: 'right' });
+
+    // Message
+    y += 12;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+    doc.text(RESULT_CONGRATS, L, y);
+    y += 7;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10.5); doc.setTextColor(...MUTED);
+    const lines = doc.splitTextToSize(RESULT_NEXT, W);
+    doc.text(lines, L, y);
+    y += lines.length * 5 + 6;
+
+    // Footer
+    doc.setFontSize(9.5); doc.setTextColor(...INK);
+    doc.text(releasedLine(r), L, 268);
+    doc.setTextColor(...MUTED); doc.setFontSize(8.5);
+    const now = new Date();
+    doc.text('Generated ' + now.getDate() + ' ' + MON_LONG[now.getMonth()] + ' ' + now.getFullYear() + ' from the RFS Student Portal.', L, 274);
+    doc.setFillColor(...YELLOW); doc.rect(0, 287, 210, 4, 'F');
+    doc.setFillColor(...GREEN); doc.rect(0, 291, 210, 6, 'F');
+    return doc;
 }
 
 // ── Start: a saved session skips the login (same tab as before), then refreshes quietly ──
