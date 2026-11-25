@@ -1900,6 +1900,30 @@
             }
         }
 
+        /* RESULTS RELEASE (Report page) — Super Admin switch, visible to every admin */
+        .rr-card { margin-bottom: 16px; }
+        .rr-switch {
+            position: relative; width: 46px; height: 26px; border-radius: 999px; border: none; flex-shrink: 0;
+            background: var(--ink-4); cursor: pointer; transition: background .15s;
+        }
+        .rr-switch::after {
+            content: ''; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%;
+            background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, .25); transition: transform .15s;
+        }
+        .rr-switch[aria-checked="true"] { background: var(--green); }
+        .rr-switch[aria-checked="true"]::after { transform: translateX(20px); }
+        .rr-switch:disabled { opacity: .45; cursor: not-allowed; }
+        .rr-state { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; color: var(--ink-2); }
+        .rr-state b { color: var(--ink); }
+        .rr-counts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+        .rr-count { font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; background: var(--line-soft); color: var(--ink-2); }
+        .rr-count.ok { background: var(--green-soft); color: var(--green-deep); }
+        .rr-count.warn { background: var(--amber-soft); color: var(--amber-text); }
+        .rr-count.bad { background: var(--rose-soft); color: var(--rose-text); }
+        .rr-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+        .rr-note { font-size: 12.5px; color: var(--ink-3); }
+        .rr-warn { margin-top: 10px; font-size: 12.5px; color: var(--amber-text); background: var(--amber-soft); border-radius: var(--r-sm); padding: 8px 10px; }
+
         /* QA/QC CONFIRMATION OVERLAY */
         .qaqc-overlay {
             position: fixed;
@@ -4603,6 +4627,28 @@
                         </div>
                     </div>
 
+                    <!-- Results Release — students see their result in the Student Portal only after a Super Admin
+                         releases it (HOD approved). Every admin sees the state; only Super Admins can switch it. -->
+                    <div class="card rr-card" id="resultsReleaseCard">
+                        <div class="card-head">
+                            <div class="card-head-text">
+                                <div class="card-title">Results Release</div>
+                                <div class="card-sub">Students see their result in the Student Portal only after release.</div>
+                            </div>
+                            <button class="rr-switch" id="rrSwitch" type="button" role="switch" aria-checked="false"
+                                aria-label="Release results to students" disabled onclick="onResultsSwitch()"></button>
+                        </div>
+                        <div class="card-body">
+                            <div class="rr-state" id="rrState">Loading…</div>
+                            <div class="rr-counts" id="rrCounts"></div>
+                            <div class="rr-warn" id="rrWarn" hidden></div>
+                            <div class="rr-foot">
+                                <span class="rr-note" id="rrNote"></span>
+                                <button class="btn btn-outline btn-sm" id="rrRerelease" type="button" hidden onclick="openResultsConfirm(true)">Re-release (update copy)</button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- mobile nudge -->
                     <div class="mob-desktop-only">
                         <div class="mob-desktop-only-icon">
@@ -4870,6 +4916,24 @@
         </div>
     </div>
 
+    <!-- Results Release confirm (Super Admin) -->
+    <div class="qaqc-overlay" id="resultsOverlay" role="dialog" aria-modal="true" aria-labelledby="rrTitle">
+        <div class="qaqc-modal">
+            <div class="qaqc-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline>
+                </svg>
+            </div>
+            <div class="qaqc-title" id="rrTitle">Has the HOD approved these results?</div>
+            <div class="qaqc-desc" id="rrDesc"></div>
+            <div class="qaqc-checklist" id="rrChecklist"></div>
+            <div class="qaqc-actions">
+                <button class="btn btn-sm" id="rrNo" style="background:var(--line-soft);color:var(--ink-2);border:none;" onclick="closeResultsConfirm()">Not yet</button>
+                <button class="btn btn-amber btn-sm" id="rrYes" onclick="confirmResultsRelease()">Yes, HOD approved — Release</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         // ============================================================
         //  ENDPOINTS — keep these in sync with your deployments
@@ -5031,6 +5095,7 @@
             if (name === 'saturday') { if (sessionData) updateSaturdayUI(sessionData); }
             if (name === 'scores') updateTopicList();
             if (name === 'permissions') { updateExcuseForm(); loadExcuses(); }
+            if (name === 'report') loadResultsStatus();
             if (name === 'grouping') {
                 var isGroupingSuper = admin && admin.role === 'Super Admin';
                 var elActions = document.getElementById('groupingPageActions');
@@ -6200,6 +6265,140 @@
             btn.disabled = false;
             btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>Yes, Run Computation';
         }
+
+        // ============================================================
+        //  RESULTS RELEASE (Report page) — unified script
+        //  admin_results_status (any admin) / admin_release_results (Super Admin, hodApproved=YES)
+        // ============================================================
+        let resultsStatus = null;      // last admin_results_status reply
+        let resultsAction = '';        // 'release' | 'rerelease' | 'withdraw' while the dialog is open
+        const RR_ORDER = [['PASSED', 'Passed', 'ok'], ['PASSED-W', 'Passed-W', 'ok'], ['FAIL', 'Fail', 'bad'],
+            ['DEFERRED', 'Deferred', 'warn'], ['WITHHELD', 'Withheld', 'bad'], ['PENDING', 'Pending', 'warn']];
+
+        function rrUrl(action, extra) {
+            return UNIFIED_SCRIPT_URL + '?action=' + action
+                + '&token=' + encodeURIComponent(SCRIPT_TOKEN)
+                + '&adminName=' + encodeURIComponent(admin ? admin.name : '')
+                + '&password=' + encodeURIComponent(getStoredPass())
+                + (extra || '') + '&cb=' + Date.now();
+        }
+        function rrDate(s) {
+            if (!s) return '';
+            const m = /^(\d{4})-(\d\d)-(\d\d)(?: (\d\d:\d\d))?/.exec(s);
+            if (!m) return s;
+            const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            return Number(m[3]) + ' ' + MON[Number(m[2]) - 1] + ' ' + m[1] + (m[4] ? ', ' + m[4] : '');
+        }
+        async function loadResultsStatus() {
+            const sw = document.getElementById('rrSwitch');
+            sw.disabled = true;
+            document.getElementById('rrState').textContent = 'Loading…';
+            try {
+                const res = await fetch(rrUrl('admin_results_status'));
+                const d = await res.json();
+                if (d.status !== 'success') {
+                    resultsStatus = null;
+                    const old = /Unknown action|Invalid action/i.test(d.message || '');
+                    document.getElementById('rrState').textContent = old ? 'This needs the updated unified script (results release).' : (d.message || 'Couldn\'t load the release state.');
+                    document.getElementById('rrCounts').innerHTML = '';
+                    document.getElementById('rrRerelease').hidden = true;
+                    document.getElementById('rrWarn').hidden = true;
+                    document.getElementById('rrNote').textContent = '';
+                    return;
+                }
+                renderResultsStatus(d);
+            } catch (e) {
+                resultsStatus = null;
+                document.getElementById('rrState').innerHTML = 'Connection error. <button class="btn btn-ghost btn-sm" type="button" onclick="loadResultsStatus()">Try again</button>';
+            }
+        }
+        function renderResultsStatus(d) {
+            resultsStatus = d;
+            const isSuper = !!(admin && admin.role === 'Super Admin');
+            const sw = document.getElementById('rrSwitch');
+            sw.setAttribute('aria-checked', d.released ? 'true' : 'false');
+            sw.disabled = !isSuper;
+            sw.title = isSuper ? (d.released ? 'Hide results from students' : 'Release results to students') : 'Super Admins only';
+            const stream = escHtml(d.className + ' ' + d.year + ' Stream ' + d.stream);
+            document.getElementById('rrState').innerHTML = d.released
+                ? '<span class="pill pill-open">Released</span><span><b>' + stream + '</b> · released ' + escHtml(rrDate(d.releasedAt)) + (d.releasedBy ? ' by ' + escHtml(d.releasedBy) : '') + ' · ' + d.snapshotCount + ' students</span>'
+                : '<span class="pill pill-closed">Not released</span><span><b>' + stream + '</b> · students see "result not ready"' + (d.withdrawnAt ? ' (withdrawn ' + escHtml(rrDate(d.withdrawnAt)) + ')' : '') + '</span>';
+            const c = d.counts || {};
+            document.getElementById('rrCounts').innerHTML = RR_ORDER.map(([k, label, cls]) =>
+                '<span class="rr-count ' + (c[k] ? cls : '') + '">' + label + ' ' + (c[k] || 0) + '</span>').join('')
+                + '<span class="rr-count">Live now · ' + (d.total || 0) + ' students</span>';
+            const warn = document.getElementById('rrWarn');
+            warn.hidden = !(c.PENDING > 0);
+            warn.textContent = c.PENDING > 0 ? c.PENDING + ' student(s) are still PENDING (no exam score). Upload every exam score before releasing.' : '';
+            document.getElementById('rrRerelease').hidden = !(isSuper && d.released);
+            document.getElementById('rrNote').textContent = isSuper
+                ? (d.released ? 'Changed a score after release? Re-release to update what students see.' : 'Only PASSED / PASSED-W students see their marks and PDF.')
+                : 'Super Admins only.';
+        }
+        function onResultsSwitch() {
+            if (!resultsStatus || !admin || admin.role !== 'Super Admin') return;
+            if (resultsStatus.released) openResultsWithdraw();
+            else openResultsConfirm(false);
+        }
+        function openResultsConfirm(again) {
+            if (!resultsStatus) return;
+            resultsAction = again ? 'rerelease' : 'release';
+            const d = resultsStatus, c = d.counts || {};
+            document.getElementById('rrTitle').textContent = 'Has the HOD approved these results?';
+            document.getElementById('rrDesc').textContent = (again
+                ? 'This replaces the copy students see with the current scores for '
+                : 'Students will see their result in the Student Portal for ') + d.className + ' ' + d.year + ' Stream ' + d.stream
+                + '. Only PASSED / PASSED-W students see their marks and can download a PDF.';
+            const lines = RR_ORDER.filter(([k]) => c[k]).map(([k, label]) => label + ': ' + c[k]);
+            document.getElementById('rrChecklist').innerHTML =
+                '<div class="qaqc-check">' + escHtml(d.total + ' students — ' + (lines.join(' · ') || 'no results')) + '</div>'
+                + (c.PENDING ? '<div class="qaqc-check" style="background:var(--amber-soft);color:var(--amber-text)">' + c.PENDING + ' student(s) are still PENDING — they will see "contact an admin".</div>' : '');
+            const yes = document.getElementById('rrYes');
+            yes.className = 'btn btn-amber btn-sm';
+            yes.textContent = again ? 'Yes, HOD approved — Update' : 'Yes, HOD approved — Release';
+            document.getElementById('rrNo').textContent = 'Not yet';
+            document.getElementById('resultsOverlay').classList.add('show');
+        }
+        function openResultsWithdraw() {
+            resultsAction = 'withdraw';
+            document.getElementById('rrTitle').textContent = 'Hide results from students?';
+            document.getElementById('rrDesc').textContent = 'Students will see "result not ready" again. The released copy is kept, and you can release again at any time.';
+            document.getElementById('rrChecklist').innerHTML = '';
+            const yes = document.getElementById('rrYes');
+            yes.className = 'btn btn-danger btn-sm';
+            yes.textContent = 'Yes, hide results';
+            document.getElementById('rrNo').textContent = 'Cancel';
+            document.getElementById('resultsOverlay').classList.add('show');
+        }
+        function closeResultsConfirm() {
+            document.getElementById('resultsOverlay').classList.remove('show');
+            resultsAction = '';
+        }
+        async function confirmResultsRelease() {
+            const action = resultsAction;
+            if (!action || !resultsStatus) return;
+            const d = resultsStatus;
+            const yes = document.getElementById('rrYes');
+            const label = yes.textContent;
+            yes.disabled = true; yes.textContent = 'Working…';
+            const extra = '&class=' + encodeURIComponent(d.className) + '&year=' + encodeURIComponent(d.year) + '&stream=' + encodeURIComponent(d.stream)
+                + (action === 'withdraw' ? '&release=FALSE' : '&release=TRUE&hodApproved=YES');
+            let reply = null;
+            try {
+                const res = await fetch(rrUrl('admin_release_results', extra));
+                reply = await res.json();
+            } catch (e) { reply = null; }
+            yes.disabled = false; yes.textContent = label;
+            closeResultsConfirm();
+            // UI updates outside the network try, so a page bug can't look like a connection error
+            if (!reply) { showToast('Connection error — results not changed. Try again.', 'err'); return; }
+            if (reply.status !== 'success') { showToast(reply.message || 'Could not change the release.', 'err'); loadResultsStatus(); return; }
+            renderResultsStatus(reply);
+            showToast(reply.message || 'Done', 'ok');
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('resultsOverlay').addEventListener('click', function (e) { if (e.target === this) closeResultsConfirm(); });
+        });
 
         // ============================================================
         //  HELPERS
